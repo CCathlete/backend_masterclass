@@ -70,7 +70,7 @@ func (q *Queries) GetTransfer(ctx context.Context, id int64) (Transfer, error) {
 	return i, err
 }
 
-const getTransferTo = `-- name: GetTransferTo :many
+const getTransfersTo = `-- name: GetTransfersTo :many
 select
   id, from_account_id, to_account_id, amount, created_at
 from
@@ -79,8 +79,8 @@ where
   to_account_id = $1
 `
 
-func (q *Queries) GetTransferTo(ctx context.Context, toAccountID int64) ([]Transfer, error) {
-	rows, err := q.db.QueryContext(ctx, getTransferTo, toAccountID)
+func (q *Queries) GetTransfersTo(ctx context.Context, toAccountID int64) ([]Transfer, error) {
+	rows, err := q.db.QueryContext(ctx, getTransfersTo, toAccountID)
 	if err != nil {
 		return nil, err
 	}

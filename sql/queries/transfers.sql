@@ -12,8 +12,10 @@ select
 from
   transfers
 where
-  id = $1 limit 1;
-  -- name: GetTransferFrom :many
+  id = $1 limit 1
+  ;
+
+  -- name: GetTransfersFrom :many
 select
   *
 from
@@ -22,7 +24,7 @@ where
   from_account_id = $1
 ;
 
--- name: GetTransferTo :many
+-- name: GetTransfersTo :many
 select
   *
 from
