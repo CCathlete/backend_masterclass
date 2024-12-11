@@ -10,13 +10,10 @@ import (
 )
 
 const createAccount = `-- name: CreateAccount :one
-insert into accounts (
-  owner,
-  balance,
-  currency
-)
+insert into
+  accounts (owner, balance, currency)
 values ($1, $2, $3)
-returning id, owner, balance, currency, created_at
+  returning id, owner, balance, currency, created_at
 `
 
 type CreateAccountParams struct {
@@ -39,7 +36,9 @@ func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (A
 }
 
 const deleteAccount = `-- name: DeleteAccount :exec
-DELETE FROM accounts WHERE id = $1
+delete from accounts
+where
+  id = $1
 `
 
 func (q *Queries) DeleteAccount(ctx context.Context, id int64) error {
@@ -48,8 +47,14 @@ func (q *Queries) DeleteAccount(ctx context.Context, id int64) error {
 }
 
 const getAccount = `-- name: GetAccount :one
-SELECT id, owner, balance, currency, created_at FROM accounts
-WHERE id = $1 limit 1
+select
+  id, owner, balance, currency, created_at
+from
+  accounts
+where
+  id = $1 
+limit
+  1
 `
 
 func (q *Queries) GetAccount(ctx context.Context, id int64) (Account, error) {
@@ -66,10 +71,16 @@ func (q *Queries) GetAccount(ctx context.Context, id int64) (Account, error) {
 }
 
 const listAccount = `-- name: ListAccount :many
-SELECT id, owner, balance, currency, created_at FROM accounts
-ORDER BY id
-limit $1
-offset $2
+select
+  id, owner, balance, currency, created_at
+from
+  accounts
+order by
+  id
+limit
+  $1
+offset
+  $2
 `
 
 type ListAccountParams struct {
@@ -107,9 +118,12 @@ func (q *Queries) ListAccount(ctx context.Context, arg ListAccountParams) ([]Acc
 }
 
 const updateAccount = `-- name: UpdateAccount :one
-UPDATE accounts SET balance = $1 -- , another_param = $3
-where id = $2
-returning id, owner, balance, currency, created_at
+update accounts
+set
+  balance = $1 -- , another_param = $3
+where
+  id = $2
+  returning id, owner, balance, currency, created_at
 `
 
 type UpdateAccountParams struct {
