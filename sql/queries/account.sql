@@ -1,4 +1,4 @@
--- name: CreateAccount: one
+-- name: CreateAccount :one
 insert into accounts (
   owner,
   balance,

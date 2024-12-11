@@ -1,9 +1,7 @@
 version: "2"
-cloud:
-    project: "<PROJECT_ID>"
 sql:
-  - schema: "sql/migration" # Migration files.
-    queries: "sql/queries" # Both this and schema can be files or folders.
+  - schema: "migrations" # Folder with migration files.
+    queries: "queries" # Both this and schema can be files or folders.
     engine: "postgresql"
     gen:
         go:
@@ -14,7 +12,3 @@ sql:
             emit_prepared_queries: false
             emit_interface: false
             emit_exact_table_names: false
-    database:
-        managed: true
-    rules:
-      - sqlc/db-prepare
