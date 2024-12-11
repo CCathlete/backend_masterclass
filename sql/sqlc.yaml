@@ -6,7 +6,7 @@ sql:
     gen:
         go:
             package: "db"
-            out: "./sql/sqlc"
+            out: "sqlc"
             emit_json_tags: true
             # I'm putting the following fields for later use.
             emit_prepared_queries: false
