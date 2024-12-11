@@ -9,3 +9,6 @@ migrateup:
 
 migratedown:
 	migrate -path sql/migrations -database "postgresql://${DB_USER}:${DB_PASS}@localhost:${DB_PORT}/${DB_NAME}?sslmode=${DB_SSL_MODE}" -verbose down
+
+# Command aliasing is considered a "phony target" so it's possible to run it repeatedly.
+.PHONY: connect dbfile migrateup migratedown
