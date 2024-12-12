@@ -11,7 +11,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASS}
       POSTGRES_DB: ${DB_NAME}
     ports: # Exposing ports for apps outside the docker-compose.
-      - "${DB_PORT}:${DB_PORT}" # Format is hostPort:containerPort <=> outside:inside.
+      - "${DB_PORT}:5432" # Format is hostPort:containerPort <=> outside:inside.
     volumes:
       - backend_masterclass:/var/lib/postgresql/data
     networks:
