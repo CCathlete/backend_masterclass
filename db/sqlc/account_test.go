@@ -87,3 +87,20 @@ func TestDeleteAccount(t *testing.T) {
 	require.EqualError(t, err, sql.ErrNoRows.Error())
 	require.Empty(t, valAccount)
 }
+
+func TestListAccounts(t *testing.T) {
+	for i := 0; i < 10; i++ {
+		createRandomAccount(t)
+	}
+
+	arg := sqlc.ListAccountParams{
+		Limit:  5,
+		Offset: 5, // Skips 5 matches before returning values.
+	}
+	results, err := testQueries.ListAccount(context.Background(), arg)
+	require.NoError(t, err)
+
+	for _, result := range results {
+		require.NotEmpty(t, result)
+	}
+}
