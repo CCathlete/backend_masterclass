@@ -1,7 +1,10 @@
-package db
+package sqlc_test
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestCreateAccount(t *testing.T) {
-
+	fmt.Println("hi")
 }

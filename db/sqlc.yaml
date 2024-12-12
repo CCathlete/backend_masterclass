@@ -1,14 +1,14 @@
 version: "2"
 sql:
-  - schema: "migrations" # Folder with migration files.
-    queries: "queries" # Both this and schema can be files or folders.
-    engine: "postgresql"
-    gen:
-        go:
-            package: "db"
-            out: "sqlc"
-            emit_json_tags: true
-            # I'm putting the following fields for later use.
-            emit_prepared_queries: false
-            emit_interface: false
-            emit_exact_table_names: false
+- schema: "migrations" # Folder with migration files.
+  queries: "queries" # Both this and schema can be files or folders.
+  engine: "postgresql"
+  gen:
+    go:
+      package: "sqlc"
+      out: "sqlc"
+      emit_json_tags: true
+      # I'm putting the following fields for later use.
+      emit_prepared_queries: false
+      emit_interface: false
+      emit_exact_table_names: false
