@@ -12,7 +12,7 @@ import (
 var testQueries *sqlc.Queries
 
 func TestMain(m *testing.M) {
-	fmt.Println("This is the main test.")
+	fmt.Println("Connecting to db...")
 
 	conn := must(sqlc.ConnectToDB()).(*sql.DB)
 
