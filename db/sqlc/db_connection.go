@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+
+	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
 type PostgresConfig struct {
