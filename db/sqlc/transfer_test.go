@@ -18,6 +18,7 @@ func createRandomTransfer(t *testing.T, fromID, toID int64) sqlc.Transfer {
 	arg := sqlc.CreateTransferParams{
 		FromAccountID: fromID,
 		ToAccountID:   toID,
+		Amount:        util.RandomMoney(),
 	}
 
 	Transfer, err := testQueries.CreateTransfer(context.Background(), arg)

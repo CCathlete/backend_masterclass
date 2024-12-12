@@ -13,7 +13,7 @@ create table
   entries (
     id bigserial primary KEY,
     account_id bigint not null references accounts (id) on delete cascade,
-    amount bigint not null, -- Can be positive or negative
+    amount bigint, -- Can be positive or negative
     created_at timestamptz not null default (now ())
   )
 ;
@@ -23,7 +23,7 @@ create table
     id bigserial primary KEY,
     from_account_id bigint not null references accounts (id) on delete cascade,
     to_account_id bigint not null references accounts (id) on delete cascade,
-    amount bigint not null check (amount > 0), -- Can be only positive (absolute value)
+    amount bigint check (amount > 0), -- Can be only positive (absolute value)
     created_at timestamptz not null default (now ())
   )
 ;
