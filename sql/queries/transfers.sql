@@ -15,7 +15,7 @@ where
   id = $1 limit 1
   ;
 
-  -- name: GetTransfersFrom :many
+-- name: GetTransfersFrom :many
 select
   *
 from

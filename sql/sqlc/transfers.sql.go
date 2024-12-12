@@ -70,6 +70,44 @@ func (q *Queries) GetTransfer(ctx context.Context, id int64) (Transfer, error) {
 	return i, err
 }
 
+const getTransfersFrom = `-- name: GetTransfersFrom :many
+select
+  id, from_account_id, to_account_id, amount, created_at
+from
+  transfers
+where
+  from_account_id = $1
+`
+
+func (q *Queries) GetTransfersFrom(ctx context.Context, fromAccountID int64) ([]Transfer, error) {
+	rows, err := q.db.QueryContext(ctx, getTransfersFrom, fromAccountID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Transfer
+	for rows.Next() {
+		var i Transfer
+		if err := rows.Scan(
+			&i.ID,
+			&i.FromAccountID,
+			&i.ToAccountID,
+			&i.Amount,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getTransfersTo = `-- name: GetTransfersTo :many
 select
   id, from_account_id, to_account_id, amount, created_at
