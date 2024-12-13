@@ -7,7 +7,6 @@ package sqlc
 
 import (
 	"context"
-	"database/sql"
 )
 
 const createEntry = `-- name: CreateEntry :one
@@ -20,8 +19,8 @@ returning id, account_id, amount, created_at
 `
 
 type CreateEntryParams struct {
-	AccountID int64         `json:"account_id"`
-	Amount    sql.NullInt64 `json:"amount"`
+	AccountID int64 `json:"account_id"`
+	Amount    int64 `json:"amount"`
 }
 
 func (q *Queries) CreateEntry(ctx context.Context, arg CreateEntryParams) (Entry, error) {
@@ -143,8 +142,8 @@ returning id, account_id, amount, created_at
 `
 
 type UpdateEntryParams struct {
-	Amount sql.NullInt64 `json:"amount"`
-	ID     int64         `json:"id"`
+	Amount int64 `json:"amount"`
+	ID     int64 `json:"id"`
 }
 
 // If there are no return values we use :exec instead of :one/many
@@ -167,8 +166,8 @@ returning id, account_id, amount, created_at
 `
 
 type UpdateEntryByAccountParams struct {
-	Amount    sql.NullInt64 `json:"amount"`
-	AccountID int64         `json:"account_id"`
+	Amount    int64 `json:"amount"`
+	AccountID int64 `json:"account_id"`
 }
 
 func (q *Queries) UpdateEntryByAccount(ctx context.Context, arg UpdateEntryByAccountParams) (Entry, error) {

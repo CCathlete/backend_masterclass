@@ -14,10 +14,12 @@ import (
 // We pass in the test to run testify/require functions.
 // This function is a validation a preparatino for each
 // test written here.
-func createRandomTransfer(t *testing.T, fromID, toID int64) sqlc.Transfer {
+func createRandomTransfer(t *testing.T) sqlc.Transfer {
+	account1 := createRandomAccount(t)
+	account2 := createRandomAccount(t)
 	arg := sqlc.CreateTransferParams{
-		FromAccountID: fromID,
-		ToAccountID:   toID,
+		FromAccountID: account1.ID,
+		ToAccountID:   account2.ID,
 		Amount:        util.RandomMoney(),
 	}
 
@@ -25,9 +27,9 @@ func createRandomTransfer(t *testing.T, fromID, toID int64) sqlc.Transfer {
 	require.NoError(t, err)
 	require.NotEmpty(t, Transfer)
 
-	require.Equal(t, arg.Owner, Transfer.Owner)
-	require.Equal(t, arg.Balance, Transfer.Balance)
-	require.Equal(t, arg.Currency, Transfer.Currency)
+	require.Equal(t, account1.ID, Transfer.FromAccountID)
+	require.Equal(t, account2.ID, Transfer.ToAccountID)
+	require.Equal(t, arg.Amount, Transfer.Amount)
 
 	require.NotZero(t, Transfer.ID)
 	require.NotZero(t, Transfer.CreatedAt)
@@ -46,9 +48,9 @@ func TestGetTransfer(t *testing.T) {
 	require.NotEmpty(t, result)
 
 	require.Equal(t, Transfer.ID, result.ID)
-	require.Equal(t, Transfer.Owner, result.Owner)
-	require.Equal(t, Transfer.Balance, result.Balance)
-	require.Equal(t, Transfer.Currency, result.Currency)
+	require.Equal(t, Transfer.FromAccountID, result.FromAccountID)
+	require.Equal(t, Transfer.ToAccountID, result.ToAccountID)
+	require.Equal(t, Transfer.Amount, result.Amount)
 	// There might be a short delay from creation of the random Transfer
 	// to its storage in the DB and we don't this to fail the test.
 	require.WithinDuration(t, Transfer.CreatedAt, result.CreatedAt, time.Second)
@@ -58,8 +60,8 @@ func TestUpdateTransfer(t *testing.T) {
 	Transfer := createRandomTransfer(t)
 
 	arg := sqlc.UpdateTransferParams{
-		ID:      Transfer.ID,
-		Balance: util.RandomMoney(),
+		ID:     Transfer.ID,
+		Amount: util.RandomMoney(),
 	}
 
 	result, err := testQueries.UpdateTransfer(context.Background(), arg)
@@ -67,10 +69,10 @@ func TestUpdateTransfer(t *testing.T) {
 	require.NotEmpty(t, result)
 
 	require.Equal(t, Transfer.ID, result.ID)
-	require.Equal(t, Transfer.Owner, result.Owner)
-	// The balance should change to the new value.
-	require.Equal(t, arg.Balance, result.Balance)
-	require.Equal(t, Transfer.Currency, result.Currency)
+	require.Equal(t, Transfer.FromAccountID, result.FromAccountID)
+	require.Equal(t, Transfer.ToAccountID, result.ToAccountID)
+	// The amount should change to the new value.
+	require.Equal(t, arg.Amount, result.Amount)
 	// There might be a short delay from creation of the random Transfer
 	// to its storage in the DB and we don't this to fail the test.
 	require.WithinDuration(t, Transfer.CreatedAt, result.CreatedAt, time.Second)
