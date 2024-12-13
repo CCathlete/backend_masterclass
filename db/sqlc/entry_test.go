@@ -131,15 +131,20 @@ func TestListEntries(t *testing.T) {
 }
 
 func TestGetAccountEntries(t *testing.T) {
+	account := createRandomAccount(t)
+
 	for i := 0; i < 10; i++ {
-		createRandomEntry(t)
+		createArg := sqlc.CreateEntryParams{
+			AccountID: account.ID,
+			Amount:    util.RandomMoney(),
+		}
+
+		_, err := testQueries.CreateEntry(context.Background(), createArg)
+		require.NoError(t, err)
 	}
 
-	arg := sqlc.ListEntriesParams{
-		Limit:  5,
-		Offset: 5, // Skips 5 matches before returning values.
-	}
-	results, err := testQueries.ListEntries(context.Background(), arg)
+	results, err := testQueries.GetAccountEntries(context.Background(),
+		account.ID)
 	require.NoError(t, err)
 
 	for _, result := range results {
