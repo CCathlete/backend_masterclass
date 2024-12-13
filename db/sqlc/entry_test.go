@@ -129,3 +129,20 @@ func TestListEntries(t *testing.T) {
 		require.NotEmpty(t, result)
 	}
 }
+
+func TestGetAccountEntries(t *testing.T) {
+	for i := 0; i < 10; i++ {
+		createRandomEntry(t)
+	}
+
+	arg := sqlc.ListEntriesParams{
+		Limit:  5,
+		Offset: 5, // Skips 5 matches before returning values.
+	}
+	results, err := testQueries.ListEntries(context.Background(), arg)
+	require.NoError(t, err)
+
+	for _, result := range results {
+		require.NotEmpty(t, result)
+	}
+}

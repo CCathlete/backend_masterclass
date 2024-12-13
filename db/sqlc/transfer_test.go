@@ -43,7 +43,8 @@ func TestCreateTransfer(t *testing.T) {
 
 func TestGetTransfer(t *testing.T) {
 	Transfer := createRandomTransfer(t)
-	result, err := testQueries.GetTransfer(context.Background(), Transfer.ID)
+	result, err := testQueries.GetTransfer(context.Background(),
+		Transfer.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, result)
 
@@ -53,7 +54,8 @@ func TestGetTransfer(t *testing.T) {
 	require.Equal(t, Transfer.Amount, result.Amount)
 	// There might be a short delay from creation of the random Transfer
 	// to its storage in the DB and we don't this to fail the test.
-	require.WithinDuration(t, Transfer.CreatedAt, result.CreatedAt, time.Second)
+	require.WithinDuration(t, Transfer.CreatedAt, result.CreatedAt,
+		time.Second)
 }
 
 func TestUpdateTransfer(t *testing.T) {
@@ -75,7 +77,8 @@ func TestUpdateTransfer(t *testing.T) {
 	require.Equal(t, arg.Amount, result.Amount)
 	// There might be a short delay from creation of the random Transfer
 	// to its storage in the DB and we don't this to fail the test.
-	require.WithinDuration(t, Transfer.CreatedAt, result.CreatedAt, time.Second)
+	require.WithinDuration(t, Transfer.CreatedAt, result.CreatedAt,
+		time.Second)
 }
 
 func TestDeleteTransfer(t *testing.T) {
@@ -84,7 +87,8 @@ func TestDeleteTransfer(t *testing.T) {
 	require.NoError(t, err)
 
 	// Validation that the Transfer was truly deleted
-	valTransfer, err := testQueries.GetTransfer(context.Background(), Transfer.ID)
+	valTransfer, err := testQueries.GetTransfer(context.Background(),
+		Transfer.ID)
 	// We want an error to occur here.
 	require.EqualError(t, err, sql.ErrNoRows.Error())
 	require.Empty(t, valTransfer)
@@ -114,14 +118,15 @@ func TestGetTransfersFrom(t *testing.T) {
 		arg := sqlc.CreateTransferParams{
 			FromAccountID: fromAccount.ID,
 			ToAccountID:   toAccount.ID,
-			Amount:        util.RandomMoney(),
+			Amount:        normaliseRandomTMoney(util.RandomMoney()),
 		}
 
 		_, err := testQueries.CreateTransfer(context.Background(), arg)
 		require.NoError(t, err)
 	}
 
-	results, err := testQueries.GetTransfersFrom(context.Background(), fromAccount.ID)
+	results, err := testQueries.GetTransfersFrom(context.Background(),
+		fromAccount.ID)
 	require.NoError(t, err)
 
 	for _, result := range results {
@@ -136,7 +141,7 @@ func TestGetTransfersTo(t *testing.T) {
 		arg := sqlc.CreateTransferParams{
 			FromAccountID: fromAccount.ID,
 			ToAccountID:   toAccount.ID,
-			Amount:        util.RandomMoney(),
+			Amount:        normaliseRandomTMoney(util.RandomMoney()),
 		}
 
 		_, err := testQueries.CreateTransfer(context.Background(), arg)
@@ -149,4 +154,12 @@ func TestGetTransfersTo(t *testing.T) {
 	for _, result := range results {
 		require.NotEmpty(t, result)
 	}
+}
+
+func normaliseRandomTMoney(transferMoney int64) int64 {
+	if transferMoney == 0 {
+		return 1
+	}
+
+	return transferMoney
 }
