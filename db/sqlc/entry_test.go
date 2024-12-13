@@ -1,4 +1,4 @@
-// package sqlc_test
+package sqlc_test
 
 // import (
 // 	"backend-masterclass/db/sqlc"
