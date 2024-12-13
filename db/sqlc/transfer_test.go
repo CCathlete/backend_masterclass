@@ -106,3 +106,47 @@ func TestListTransfers(t *testing.T) {
 		require.NotEmpty(t, result)
 	}
 }
+
+func TestGetTransfersFrom(t *testing.T) {
+	fromAccount := createRandomAccount(t)
+	for i := 0; i < 10; i++ {
+		toAccount := createRandomAccount(t)
+		arg := sqlc.CreateTransferParams{
+			FromAccountID: fromAccount.ID,
+			ToAccountID:   toAccount.ID,
+			Amount:        util.RandomMoney(),
+		}
+
+		_, err := testQueries.CreateTransfer(context.Background(), arg)
+		require.NoError(t, err)
+	}
+
+	results, err := testQueries.GetTransfersFrom(context.Background(), fromAccount.ID)
+	require.NoError(t, err)
+
+	for _, result := range results {
+		require.NotEmpty(t, result)
+	}
+}
+
+func TestGetTransfersTo(t *testing.T) {
+	toAccount := createRandomAccount(t)
+	for i := 0; i < 10; i++ {
+		fromAccount := createRandomAccount(t)
+		arg := sqlc.CreateTransferParams{
+			FromAccountID: fromAccount.ID,
+			ToAccountID:   toAccount.ID,
+			Amount:        util.RandomMoney(),
+		}
+
+		_, err := testQueries.CreateTransfer(context.Background(), arg)
+		require.NoError(t, err)
+	}
+
+	results, err := testQueries.GetTransfersTo(context.Background(), toAccount.ID)
+	require.NoError(t, err)
+
+	for _, result := range results {
+		require.NotEmpty(t, result)
+	}
+}
