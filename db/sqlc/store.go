@@ -45,7 +45,7 @@ func CommitOrRollback(transaction *sql.Tx, err error) error {
 		return fmt.Errorf("rollback performed: %w", err)
 	}
 
-	log.Println("Commited transaction.")
+	log.Println("Committed transaction.")
 	return nil
 }
 
