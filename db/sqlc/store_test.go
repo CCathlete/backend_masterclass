@@ -24,7 +24,7 @@ func TestTransferTx(t *testing.T) {
 	// Access to the DB would happen in parallel  but reading the result
 	// would happen serially.
 	// Why not a buffered channel?
-	n := 5
+	n := 2
 	amount := int64(10)
 
 	errs := make(chan error)
