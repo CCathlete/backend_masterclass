@@ -51,6 +51,15 @@ where
   returning *
 ;
 
+-- name: UpdateAccountBalance :one
+update accounts
+set
+  balance = balance + sqlc.arg(amount) -- , another_param = $3
+where
+  id = sqlc.arg(id)
+  returning *
+;
+
 -- name: DeleteAccount :exec
 delete from accounts
 where

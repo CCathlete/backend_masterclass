@@ -132,9 +132,9 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 			}
 
 			fmt.Println(txName, "Updating ToAccounts' balance.")
-			result.ToAccount, err = q.UpdateAccount(ctx, UpdateAccountParams{
-				Balance: result.ToAccount.Balance + arg.Amount,
-				ID:      result.ToAccount.ID,
+			result.ToAccount, err = q.UpdateAccountBalance(ctx, UpdateAccountBalanceParams{
+				Amount: +arg.Amount,
+				ID:     result.ToAccount.ID,
 			})
 			if err != nil {
 				return fmt.Errorf("TransferTx: %w", err)
@@ -148,9 +148,9 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 			}
 
 			fmt.Println(txName, "Updating FromAccounts' balance.")
-			result.FromAccount, err = q.UpdateAccount(ctx, UpdateAccountParams{
-				Balance: result.FromAccount.Balance - arg.Amount,
-				ID:      result.FromAccount.ID,
+			result.FromAccount, err = q.UpdateAccountBalance(ctx, UpdateAccountBalanceParams{
+				Amount: -arg.Amount,
+				ID:     result.FromAccount.ID,
 			})
 			if err != nil {
 				return fmt.Errorf("TransferTx: %w", err)
