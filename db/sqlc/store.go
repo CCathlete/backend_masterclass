@@ -103,7 +103,7 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 				return fmt.Errorf("TransferTx: %w", err)
 			}
 
-			fmt.Println(txName, "Create enrty 1.")
+			fmt.Println(txName, "Create entry 1.")
 			result.FromEntry, err = q.CreateEntry(ctx, CreateEntryParams{
 				AccountID: arg.FromAccountID,
 				Amount:    -(arg.Amount), // Currency exits this account.
@@ -112,7 +112,7 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 				return fmt.Errorf("TransferTx: %w", err)
 			}
 
-			fmt.Println(txName, "Create enrty 2.")
+			fmt.Println(txName, "Create entry 2.")
 			result.ToEntry, err = q.CreateEntry(ctx, CreateEntryParams{
 				AccountID: arg.ToAccountID,
 				Amount:    +(arg.Amount), // Currency enters this account.
