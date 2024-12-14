@@ -109,7 +109,7 @@ func TestTransferTx(t *testing.T) {
 		require.NoError(t, err)
 
 		// Check accounts' balance.
-		fmt.Printf(">> tx %s: %d %d\n", ctx.Value(sqlc.TxKey), fromAccount.Balance,
+		fmt.Printf(">> %s: %d %d\n", ctx.Value(sqlc.TxKey), fromAccount.Balance,
 			toAccount.Balance)
 		diff1 := account1.Balance - fromAccount.Balance
 		diff2 := toAccount.Balance - account2.Balance
