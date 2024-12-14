@@ -79,7 +79,7 @@ where
   id = $1 
 limit
   1
-for update
+for no key update
 `
 
 func (q *Queries) GetAccountForUpdate(ctx context.Context, id int64) (Account, error) {

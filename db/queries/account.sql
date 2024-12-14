@@ -25,7 +25,7 @@ where
   id = $1 
 limit
   1
-for update
+for no key update
 ;
 
 -- name: ListAccount :many
