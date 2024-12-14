@@ -13,7 +13,7 @@ var testQueries *sqlc.Queries
 var testDB = must(sqlc.ConnectToDB()).(*sql.DB)
 
 func TestMain(m *testing.M) {
-	fmt.Println("testDBecting to db...")
+	fmt.Println("Connecting to db...")
 
 	testQueries = sqlc.New(testDB)
 
