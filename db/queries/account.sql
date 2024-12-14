@@ -16,6 +16,18 @@ limit
   1
 ;
 
+-- name: GetAccountForUpdate :one
+select
+  *
+from
+  accounts
+where
+  id = $1 
+limit
+  1
+for update
+;
+
 -- name: ListAccount :many
 select
   *

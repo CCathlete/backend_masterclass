@@ -114,8 +114,8 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 				return fmt.Errorf("TransferTx: %w", err)
 			}
 
-			// TODO: needs refactoring.
-			result.ToAccount, err = q.GetAccount(ctx, arg.ToAccountID)
+			result.ToAccount, err = q.GetAccountForUpdate(ctx,
+				arg.ToAccountID)
 			if err != nil {
 				return fmt.Errorf("TransferTx: %w", err)
 			}
@@ -128,7 +128,8 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 				return fmt.Errorf("TransferTx: %w", err)
 			}
 
-			result.FromAccount, err = q.GetAccount(ctx, arg.FromAccountID)
+			result.FromAccount, err = q.GetAccountForUpdate(ctx,
+				arg.FromAccountID)
 			if err != nil {
 				return fmt.Errorf("TransferTx: %w", err)
 			}

@@ -105,7 +105,7 @@ func TestTransferTx(t *testing.T) {
 		require.NoError(t, err)
 
 		// Check accounts' balance.
-		fmt.Printf(">> tx %d:\n%d %d\n", i, fromAccount.Balance,
+		fmt.Printf(">> tx %d: %d %d\n", i, fromAccount.Balance,
 			toAccount.Balance)
 		diff1 := account1.Balance - fromAccount.Balance
 		diff2 := toAccount.Balance - account2.Balance
