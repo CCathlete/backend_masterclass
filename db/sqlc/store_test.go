@@ -45,6 +45,7 @@ func TestTransferTx(t *testing.T) {
 
 			errs <- err
 			results <- result
+			fmt.Println(txName, "sent its result/ error to the channel.")
 		}(txName)
 	}
 
@@ -55,6 +56,9 @@ func TestTransferTx(t *testing.T) {
 
 		result := <-results
 		require.NotEmpty(t, result)
+
+		fmt.Println(ctx.Value(sqlc.TxKey),
+			"is being read from the channel.")
 
 		// Check Transfer.
 		transfer := result.Transfer
