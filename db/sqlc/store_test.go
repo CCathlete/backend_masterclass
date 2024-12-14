@@ -3,19 +3,26 @@ package sqlc_test
 import (
 	"backend-masterclass/db/sqlc"
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
 
 func TestTransferTx(t *testing.T) {
+	existed := make(map[int]bool)
 	store := sqlc.NewStore(testDB)
 	account1 := createRandomAccount(t)
 	account2 := createRandomAccount(t)
+	fmt.Println(">> before:", account1.Balance, account2.Balance)
 
 	// Run a concurrent transfer transaction.
+	// The concurrency here simulates a real life scenario of
+	// a possible parallel access to the same resource.
 	// Using an unbuffered channel will lock all goroutins except of the
 	// first one that got to the results/ error channels.
+	// Access to the DB would happen in parallel  but reading the result
+	// would happen serially.
 	// Why not a buffered channel?
 	n := 5
 	amount := int64(10)
@@ -54,11 +61,11 @@ func TestTransferTx(t *testing.T) {
 		require.NotZero(t, transfer.ID)
 		require.NotZero(t, transfer.CreatedAt)
 
-		// Validate storing the transfer.
+		// Validate presence in DB.
 		_, err = store.GetTransfer(context.Background(), transfer.ID)
 		require.NoError(t, err)
 
-		// Validate entries.
+		// Check entries.
 		fromEntry := result.FromEntry
 		require.NotEmpty(t, fromEntry)
 		require.Equal(t, account1.ID, fromEntry.AccountID)
@@ -66,7 +73,7 @@ func TestTransferTx(t *testing.T) {
 		require.NotZero(t, fromEntry.ID)
 		require.NotZero(t, fromEntry.CreatedAt)
 
-		// Validate storing the entry.
+		// Validate presence in DB.
 		_, err = store.GetEntry(context.Background(), fromEntry.ID)
 		require.NoError(t, err)
 
@@ -77,10 +84,56 @@ func TestTransferTx(t *testing.T) {
 		require.NotZero(t, toEntry.ID)
 		require.NotZero(t, toEntry.CreatedAt)
 
-		// Validate storing the entry.
+		// Validate presence in DB.
 		_, err = store.GetEntry(context.Background(), toEntry.ID)
 		require.NoError(t, err)
 
-		// TODO: check account balance.
+		// Check accounts.
+		fromAccount := result.FromAccount
+		require.NotEmpty(t, fromAccount)
+		require.Equal(t, account1.ID, fromAccount.ID)
+		//
+		toAccount := result.ToAccount
+		require.NotEmpty(t, toAccount)
+		require.Equal(t, account2.ID, toAccount.ID)
+
+		// Validate presence in DB.
+		_, err = store.GetAccount(context.Background(), fromAccount.ID)
+		require.NoError(t, err)
+		//
+		_, err = store.GetAccount(context.Background(), toAccount.ID)
+		require.NoError(t, err)
+
+		// Check accounts' balance.
+		fmt.Printf(">> tx %d:\n%d %d\n", i, account1.Balance, account2.Balance)
+		diff1 := account1.Balance - fromAccount.Balance
+		diff2 := toAccount.Balance - account2.Balance
+		require.Equal(t, diff1, diff2)
+		require.True(t, diff1 > 0)
+		// We perform n transactions, each time substracting/adding
+		// by amount.
+		require.True(t, diff1%amount == 0)
+
+		// We want to make sure that the balances actually changes on
+		// each read iteration.
+		k := int(diff1 / amount)
+		require.True(t, k >= 1 && k <= n)
+		existed[k] = true // The diff must change with each transaction.
 	}
+
+	// Checking the final result after all transactions are done.
+	// We want to check each of the accounts in this case.
+	updatedAccount1, err := testQueries.GetAccount(context.Background(),
+		account1.ID)
+	require.NoError(t, err)
+
+	updatedAccount2, err := testQueries.GetAccount(context.Background(),
+		account2.ID)
+	require.NoError(t, err)
+
+	fmt.Println(">> after:", updatedAccount1.Balance, updatedAccount2.Balance)
+	require.Equal(t, amount*int64(n),
+		account1.Balance-updatedAccount1.Balance)
+	require.Equal(t, amount*int64(n),
+		updatedAccount2.Balance-account2.Balance)
 }
