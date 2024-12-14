@@ -16,6 +16,9 @@ sqlc:
 test:
 	go test -v -cover ./...
 
+migraterestart:
+	make migratedown; make migrateup
+
 # Command aliasing is considered a "phony target" so it's possible to run it repeatedly.
-.PHONY: connect migrateup migratedown sqlc test #dbfile
+.PHONY: connect migrateup migratedown sqlc test migraterestart #dbfile
 
