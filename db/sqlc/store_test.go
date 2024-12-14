@@ -31,8 +31,11 @@ func TestTransferTx(t *testing.T) {
 	results := make(chan sqlc.TransferTxResult)
 
 	for i := 0; i < n; i++ {
+		txName := fmt.Sprintf("tx %d", i+1)
 		go func() {
-			result, err := store.TransferTx(context.Background(),
+			ctx := context.WithValue(context.Background(),
+				sqlc.TxKey, txName)
+			result, err := store.TransferTx(ctx,
 				sqlc.TransferTxParams{
 					FromAccountID: account1.ID,
 					ToAccountID:   account2.ID,
@@ -105,7 +108,7 @@ func TestTransferTx(t *testing.T) {
 		require.NoError(t, err)
 
 		// Check accounts' balance.
-		fmt.Printf(">> tx %d: %d %d\n", i, fromAccount.Balance,
+		fmt.Printf(">> tx %d: %d %d\n", i+1, fromAccount.Balance,
 			toAccount.Balance)
 		diff1 := account1.Balance - fromAccount.Balance
 		diff2 := toAccount.Balance - account2.Balance
