@@ -33,7 +33,7 @@ func TestTransferTx(t *testing.T) {
 
 	for i := 0; i < n; i++ {
 		txName := fmt.Sprintf("tx %d", i+1)
-		go func() {
+		go func(txName string) {
 			ctx = context.WithValue(context.Background(),
 				sqlc.TxKey, txName)
 			result, err := store.TransferTx(ctx,
@@ -45,7 +45,7 @@ func TestTransferTx(t *testing.T) {
 
 			errs <- err
 			results <- result
-		}()
+		}(txName)
 	}
 
 	// Check results.
