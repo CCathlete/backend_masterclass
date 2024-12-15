@@ -120,37 +120,26 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 				return fmt.Errorf("%s: TransferTx: %w", txName, err)
 			}
 
-			// // For update means that we can get the account only while it's
-			// // not being updated i.e all transactions operating on it are
-			// // closed (committed or rolled back).
-			// result.ToAccount, err = q.GetAccountForUpdate(ctx,
-			// 	arg.ToAccountID)
-			// if err != nil {
-			// 	return fmt.Errorf("%s: TransferTx: %w", txName, err)
-			// }
-
-			// result.FromAccount, err = q.GetAccountForUpdate(ctx,
-			// 	arg.FromAccountID)
-			// if err != nil {
-			// 	return fmt.Errorf("%s: TransferTx: %w", txName, err)
-			// }
-
 			// The updating of accounts must be made in a consistent way
 			// regarding the account ids. Meaning, that we can't have an
 			// account being updated first when it's a from account but
 			// updated second when its to account - CREATES DEADLOCK.
 			if arg.FromAccountID < arg.ToAccountID {
+
 				result.FromAccount, result.ToAccount, err = addMoney(ctx, q, arg.FromAccountID,
 					arg.ToAccountID, -arg.Amount, +arg.Amount)
 				if err != nil {
 					return fmt.Errorf("%s: TransferTx: %w", txName, err)
 				}
+
 			} else {
+
 				result.ToAccount, result.FromAccount, err = addMoney(ctx, q, arg.ToAccountID,
 					arg.FromAccountID, +arg.Amount, -arg.Amount)
 				if err != nil {
 					return fmt.Errorf("%s: TransferTx: %w", txName, err)
 				}
+
 			}
 
 			return nil
