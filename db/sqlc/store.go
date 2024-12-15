@@ -23,7 +23,9 @@ func NewStore(db *sql.DB) *Store {
 // This will be the last thing executed (first defer).
 // It gets the last error value of the function and the transaction
 // and commits or rolls back according to the error.
-func CommitOrRollback(transaction *sql.Tx, err error) error {
+func CommitOrRollback(ctx context.Context, transaction *sql.Tx, err error) error {
+	txName := ctx.Value(TxKey)
+
 	switch err {
 	case nil:
 		// Committing the transaction to the DB.
@@ -45,7 +47,7 @@ func CommitOrRollback(transaction *sql.Tx, err error) error {
 		return fmt.Errorf("rollback performed: %w", err)
 	}
 
-	log.Println("Committed transaction.")
+	fmt.Println(txName, "Committed.")
 	return nil
 }
 
@@ -55,7 +57,7 @@ func (store *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
 	if err != nil {
 		return fmt.Errorf("execTx: %w", err)
 	}
-	defer CommitOrRollback(tx, err)
+	defer CommitOrRollback(ctx, tx, err)
 
 	// We create a *Qeries object with a transaction instead of regular db.
 	q := New(tx)
@@ -118,54 +120,34 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 				return fmt.Errorf("%s: TransferTx: %w", txName, err)
 			}
 
-			// For update means that we can get the account only while it's
-			// not being updated i.e all transactions operating on it are
-			// closed (committed or rolled back).
-			result.ToAccount, err = q.GetAccountForUpdate(ctx,
-				arg.ToAccountID)
-			if err != nil {
-				return fmt.Errorf("%s: TransferTx: %w", txName, err)
-			}
+			// // For update means that we can get the account only while it's
+			// // not being updated i.e all transactions operating on it are
+			// // closed (committed or rolled back).
+			// result.ToAccount, err = q.GetAccountForUpdate(ctx,
+			// 	arg.ToAccountID)
+			// if err != nil {
+			// 	return fmt.Errorf("%s: TransferTx: %w", txName, err)
+			// }
 
-			result.FromAccount, err = q.GetAccountForUpdate(ctx,
-				arg.FromAccountID)
-			if err != nil {
-				return fmt.Errorf("%s: TransferTx: %w", txName, err)
-			}
+			// result.FromAccount, err = q.GetAccountForUpdate(ctx,
+			// 	arg.FromAccountID)
+			// if err != nil {
+			// 	return fmt.Errorf("%s: TransferTx: %w", txName, err)
+			// }
 
 			// The updating of accounts must be made in a consistent way
 			// regarding the account ids. Meaning, that we can't have an
 			// account being updated first when it's a from account but
 			// updated second when its to account - CREATES DEADLOCK.
 			if arg.FromAccountID < arg.ToAccountID {
-				result.FromAccount, err = q.UpdateAccountBalance(ctx, UpdateAccountBalanceParams{
-					Amount: -arg.Amount,
-					ID:     result.FromAccount.ID,
-				})
-				if err != nil {
-					return fmt.Errorf("%s: TransferTx: %w", txName, err)
-				}
-
-				result.ToAccount, err = q.UpdateAccountBalance(ctx, UpdateAccountBalanceParams{
-					Amount: +arg.Amount,
-					ID:     result.ToAccount.ID,
-				})
+				result.FromAccount, result.ToAccount, err = addMoney(ctx, q, arg.FromAccountID,
+					arg.ToAccountID, -arg.Amount, +arg.Amount)
 				if err != nil {
 					return fmt.Errorf("%s: TransferTx: %w", txName, err)
 				}
 			} else {
-				result.ToAccount, err = q.UpdateAccountBalance(ctx, UpdateAccountBalanceParams{
-					Amount: +arg.Amount,
-					ID:     result.ToAccount.ID,
-				})
-				if err != nil {
-					return fmt.Errorf("%s: TransferTx: %w", txName, err)
-				}
-
-				result.FromAccount, err = q.UpdateAccountBalance(ctx, UpdateAccountBalanceParams{
-					Amount: -arg.Amount,
-					ID:     result.FromAccount.ID,
-				})
+				result.ToAccount, result.FromAccount, err = addMoney(ctx, q, arg.ToAccountID,
+					arg.FromAccountID, +arg.Amount, -arg.Amount)
 				if err != nil {
 					return fmt.Errorf("%s: TransferTx: %w", txName, err)
 				}
@@ -177,6 +159,33 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 		return TransferTxResult{}, fmt.Errorf("%s: TransferTx: %w", txName, err)
 	}
 
-	fmt.Println(txName, "Transaction complete.")
 	return result, nil
+}
+
+func addMoney(
+	ctx context.Context,
+	q *Queries,
+	aID1,
+	aID2,
+	amount1,
+	amount2 int64,
+) (account1 Account, account2 Account, err error) {
+
+	account1, err = q.UpdateAccountBalance(ctx, UpdateAccountBalanceParams{
+		Amount: amount1,
+		ID:     aID1,
+	})
+	if err != nil {
+		return // because of named return values, returns empty accounts and err.
+	}
+
+	account2, err = q.UpdateAccountBalance(ctx, UpdateAccountBalanceParams{
+		Amount: amount2,
+		ID:     aID2,
+	})
+	if err != nil {
+		return
+	}
+
+	return
 }

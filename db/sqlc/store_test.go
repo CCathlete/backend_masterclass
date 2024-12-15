@@ -45,7 +45,11 @@ func TestTransferTx(t *testing.T) {
 
 			errs <- err
 			results <- result
-			fmt.Println(txName, "sent its result/ error to the channel.")
+			if err != nil {
+				fmt.Println(txName, "sent its error to the channel.")
+			} else {
+				fmt.Println(txName, "sent its result to the channel.")
+			}
 		}(txName)
 	}
 
@@ -181,7 +185,9 @@ func TestTransferTxDeadlock(t *testing.T) {
 				})
 
 			errs <- err
-			fmt.Println(txName, "sent its error to the channel.")
+			if err != nil {
+				fmt.Println(txName, "sent its error to the channel.")
+			}
 		}(txName, i)
 	}
 
