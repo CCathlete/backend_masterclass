@@ -57,9 +57,6 @@ func TestTransferTx(t *testing.T) {
 		result := <-results
 		require.NotEmpty(t, result)
 
-		fmt.Println(ctx.Value(sqlc.TxKey),
-			"is being read from the channel.")
-
 		// Check Transfer.
 		transfer := result.Transfer
 		require.NotEmpty(t, transfer)
@@ -113,7 +110,7 @@ func TestTransferTx(t *testing.T) {
 		require.NoError(t, err)
 
 		// Check accounts' balance.
-		fmt.Printf(">> %s: %d %d\n", ctx.Value(sqlc.TxKey), fromAccount.Balance,
+		fmt.Printf(">> Tx: %d %d\n", fromAccount.Balance,
 			toAccount.Balance)
 		diff1 := account1.Balance - fromAccount.Balance
 		diff2 := toAccount.Balance - account2.Balance
@@ -145,4 +142,64 @@ func TestTransferTx(t *testing.T) {
 		account1.Balance-updatedAccount1.Balance)
 	require.Equal(t, amount*int64(n),
 		updatedAccount2.Balance-account2.Balance)
+}
+
+// Here all we care about is if there are any deadlocks.
+func TestTransferTxDeadlock(t *testing.T) {
+	store := sqlc.NewStore(testDB)
+	account1 := createRandomAccount(t)
+	account2 := createRandomAccount(t)
+
+	n := 10
+	amount := int64(10)
+
+	errs := make(chan error)
+	var ctx context.Context
+
+	for i := 0; i < n; i++ {
+		txName := fmt.Sprintf("tx %d", i+1)
+
+		go func(txName string, i int) {
+			var err error
+
+			ctx = context.WithValue(context.Background(),
+				sqlc.TxKey, txName)
+
+			fromAccount := account1
+			toAccount := account2
+
+			if i%2 != 0 {
+				fromAccount = account2
+				toAccount = account1
+			}
+
+			_, err = store.TransferTx(ctx,
+				sqlc.TransferTxParams{
+					FromAccountID: fromAccount.ID,
+					ToAccountID:   toAccount.ID,
+					Amount:        amount,
+				})
+
+			errs <- err
+			fmt.Println(txName, "sent its error to the channel.")
+		}(txName, i)
+	}
+
+	// Check errors.
+	for i := 0; i < n; i++ {
+		err := <-errs
+		require.NoError(t, err)
+	}
+
+	// Checking the final result after all transactions are done.
+	updatedAccount1, err := testQueries.GetAccount(context.Background(),
+		account1.ID)
+	require.NoError(t, err)
+
+	updatedAccount2, err := testQueries.GetAccount(context.Background(),
+		account2.ID)
+	require.NoError(t, err)
+
+	require.Equal(t, account1.Balance, updatedAccount1.Balance)
+	require.Equal(t, account2.Balance, updatedAccount2.Balance)
 }

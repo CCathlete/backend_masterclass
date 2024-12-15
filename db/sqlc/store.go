@@ -97,70 +97,86 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 
 			// The params types have the same fields so we can do a simple
 			// conversion.
-			fmt.Println(txName, "Create transfer.")
 			result.Transfer, err = q.CreateTransfer(ctx, CreateTransferParams(arg))
 			if err != nil {
-				return fmt.Errorf("TransferTx: %w", err)
+				return fmt.Errorf("%s: TransferTx: %w", txName, err)
 			}
 
-			fmt.Println(txName, "Create entry 1.")
 			result.FromEntry, err = q.CreateEntry(ctx, CreateEntryParams{
 				AccountID: arg.FromAccountID,
 				Amount:    -(arg.Amount), // Currency exits this account.
 			})
 			if err != nil {
-				return fmt.Errorf("TransferTx: %w", err)
+				return fmt.Errorf("%s: TransferTx: %w", txName, err)
 			}
 
-			fmt.Println(txName, "Create entry 2.")
 			result.ToEntry, err = q.CreateEntry(ctx, CreateEntryParams{
 				AccountID: arg.ToAccountID,
 				Amount:    +(arg.Amount), // Currency enters this account.
 			})
 			if err != nil {
-				return fmt.Errorf("TransferTx: %w", err)
+				return fmt.Errorf("%s: TransferTx: %w", txName, err)
 			}
 
 			// For update means that we can get the account only while it's
 			// not being updated i.e all transactions operating on it are
 			// closed (committed or rolled back).
-			fmt.Println(txName, "Getting ToAccount for update.")
 			result.ToAccount, err = q.GetAccountForUpdate(ctx,
 				arg.ToAccountID)
 			if err != nil {
-				return fmt.Errorf("TransferTx: %w", err)
+				return fmt.Errorf("%s: TransferTx: %w", txName, err)
 			}
 
-			fmt.Println(txName, "Updating ToAccounts' balance.")
-			result.ToAccount, err = q.UpdateAccountBalance(ctx, UpdateAccountBalanceParams{
-				Amount: +arg.Amount,
-				ID:     result.ToAccount.ID,
-			})
-			if err != nil {
-				return fmt.Errorf("TransferTx: %w", err)
-			}
-
-			fmt.Println(txName, "Getting FromAccount for update.")
 			result.FromAccount, err = q.GetAccountForUpdate(ctx,
 				arg.FromAccountID)
 			if err != nil {
-				return fmt.Errorf("TransferTx: %w", err)
+				return fmt.Errorf("%s: TransferTx: %w", txName, err)
 			}
 
-			fmt.Println(txName, "Updating FromAccounts' balance.")
-			result.FromAccount, err = q.UpdateAccountBalance(ctx, UpdateAccountBalanceParams{
-				Amount: -arg.Amount,
-				ID:     result.FromAccount.ID,
-			})
-			if err != nil {
-				return fmt.Errorf("TransferTx: %w", err)
+			// The updating of accounts must be made in a consistent way
+			// regarding the account ids. Meaning, that we can't have an
+			// account being updated first when it's a from account but
+			// updated second when its to account - CREATES DEADLOCK.
+			if arg.FromAccountID < arg.ToAccountID {
+				result.FromAccount, err = q.UpdateAccountBalance(ctx, UpdateAccountBalanceParams{
+					Amount: -arg.Amount,
+					ID:     result.FromAccount.ID,
+				})
+				if err != nil {
+					return fmt.Errorf("%s: TransferTx: %w", txName, err)
+				}
+
+				result.ToAccount, err = q.UpdateAccountBalance(ctx, UpdateAccountBalanceParams{
+					Amount: +arg.Amount,
+					ID:     result.ToAccount.ID,
+				})
+				if err != nil {
+					return fmt.Errorf("%s: TransferTx: %w", txName, err)
+				}
+			} else {
+				result.ToAccount, err = q.UpdateAccountBalance(ctx, UpdateAccountBalanceParams{
+					Amount: +arg.Amount,
+					ID:     result.ToAccount.ID,
+				})
+				if err != nil {
+					return fmt.Errorf("%s: TransferTx: %w", txName, err)
+				}
+
+				result.FromAccount, err = q.UpdateAccountBalance(ctx, UpdateAccountBalanceParams{
+					Amount: -arg.Amount,
+					ID:     result.FromAccount.ID,
+				})
+				if err != nil {
+					return fmt.Errorf("%s: TransferTx: %w", txName, err)
+				}
 			}
 
 			return nil
 		})
 	if err != nil {
-		return TransferTxResult{}, fmt.Errorf("TransferTx: %w", err)
+		return TransferTxResult{}, fmt.Errorf("%s: TransferTx: %w", txName, err)
 	}
 
+	fmt.Println(txName, "Transaction complete.")
 	return result, nil
 }
