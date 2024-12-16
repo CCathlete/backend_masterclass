@@ -22,10 +22,12 @@ jobs:
         image: postgres:14.15-alpine3.21
         # Provide the password for postgres
         env:
-          POSTGRES_PASSWORD: postgres
-        # We need to map ports when running on a GitHub runner machine.
+          POSTGRES_USER: ccat
+          POSTGRES_PASSWORD: feedthemsibsandpellots
+          POSTGRES_DB: webgo
         ports:
         - 5432:5432
+
         # Set health checks to wait until postgres has started
         options: >-
           --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
@@ -48,19 +50,19 @@ jobs:
     - name: Run Migrations
       run: make migrateup
       env:
-        DB_HOST: postgres
+        DB_HOST: localhost
         DB_PORT: 5432
-        DB_USER: postgres
-        DB_PASS: postgres
+        DB_USER: ccat
+        DB_PASS: feedthemsibsandpellots
         DB_NAME: webgo
         DB_SSL_MODE: disable
 
     - name: Test
       run: make test
       env:
-        DB_HOST: postgres
+        DB_HOST: localhost
         DB_PORT: 5432
-        DB_USER: postgres
-        DB_PASS: postgres
+        DB_USER: ccat
+        DB_PASS: feedthemsibsandpellots
         DB_NAME: webgo
         DB_SSL_MODE: disable
