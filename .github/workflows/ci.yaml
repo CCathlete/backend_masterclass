@@ -22,11 +22,9 @@ jobs:
         image: postgres:14.15-alpine3.21
         # Provide the password for postgres
         env:
-          POSTGRES_USER: ccat
-          POSTGRES_PASSWORD: feedthemsibsandpellots
-          POSTGRES_PORT: 5432
-        ports:
-        - 5432:5432
+          POSTGRES_PASSWORD: postgres
+        # ports:
+        # - 5432:5432
 
         # Set health checks to wait until postgres has started
         options: >-
@@ -52,8 +50,8 @@ jobs:
       env:
         DB_HOST: postgres
         DB_PORT: 5432
-        DB_USER: ccat
-        DB_PASS: feedthemsibsandpellots
+        DB_USER: postgres
+        DB_PASS: postgres
         DB_NAME: webgo
         DB_SSL_MODE: disable
 
@@ -62,7 +60,7 @@ jobs:
       env:
         DB_HOST: postgres
         DB_PORT: 5432
-        DB_USER: ccat
-        DB_PASS: feedthemsibsandpellots
+        DB_USER: postgres
+        DB_PASS: postgres
         DB_NAME: webgo
         DB_SSL_MODE: disable
