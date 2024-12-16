@@ -22,12 +22,12 @@ jobs:
         image: postgres:14.15-alpine3.21
         # Provide the password for postgres
         env:
-          DB_HOST: localhost
-          DB_PORT: 5434
-          DB_USER: ccat
-          DB_PASS: feedthemsibsandpellots
-          DB_NAME: webgo
-          DB_SSL_MODE: disable
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5434
+          POSTGRES_USER: ccat
+          POSTGRES_PASS: feedthemsibsandpellots
+          POSTGRES_NAME: webgo
+          POSTGRES_SSL_MODE: disable
 
         # Set health checks to wait until postgres has started
         options: >-
@@ -42,8 +42,18 @@ jobs:
         go-version: '1.22.2'
       id: go-setup
 
+    - name: Install go-migrate
+      run: make migrateup
+
     - name: Run Migrations
       run: make migrateup
 
     - name: Test
       run: make test
+      env:
+        DB_HOST: localhost
+        DB_PORT: 5434
+        DB_USER: ccat
+        DB_PASS: feedthemsibsandpellots
+        DB_NAME: webgo
+        DB_SSL_MODE: disable
