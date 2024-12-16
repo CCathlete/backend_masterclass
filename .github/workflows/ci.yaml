@@ -13,6 +13,26 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+
+    # Service containers to run with `container-job`
+    services:
+      # Label used to access the service container
+      postgres:
+        # Docker Hub image
+        image: postgres:14.15-alpine3.21
+        # Provide the password for postgres
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5434
+          DB_USER: ccat
+          DB_PASS: feedthemsibsandpellots
+          DB_NAME: webgo
+          DB_SSL_MODE: disable
+
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
     steps:
     - uses: actions/checkout@v4
 
