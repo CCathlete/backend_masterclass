@@ -22,12 +22,9 @@ jobs:
         image: postgres:14.15-alpine3.21
         # Provide the password for postgres
         env:
-          POSTGRES_HOST: localhost
-          POSTGRES_PORT: 5434
           POSTGRES_USER: ccat
-          POSTGRES_PASS: feedthemsibsandpellots
-          POSTGRES_NAME: webgo
-          POSTGRES_SSL_MODE: disable
+          POSTGRES_PASSWORD: feedthemsibsandpellots
+          POSTGRES_PORT: 5434
 
         # Set health checks to wait until postgres has started
         options: >-
@@ -51,7 +48,7 @@ jobs:
     - name: Test
       run: make test
       env:
-        DB_HOST: localhost
+        DB_HOST: postgres
         DB_PORT: 5434
         DB_USER: ccat
         DB_PASS: feedthemsibsandpellots
