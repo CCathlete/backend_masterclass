@@ -40,7 +40,7 @@ jobs:
       id: go-setup
 
     - name: Install go-migrate
-      run: curl -L https://github.com/golang-migrate/migrate/releases/download/$version/migrate.$os-$arch.tar.gz | tar xvz
+      run: curl -L https://github.com/golang-migrate/migrate/releases/download/$version/migrate.linux-amd64.tar.gz  | tar xvz mv migrate.linux-amd64.tar.gz /usr/bin
 
     - name: Run Migrations
       run: make migrateup
@@ -54,4 +54,3 @@ jobs:
         DB_PASS: feedthemsibsandpellots
         DB_NAME: webgo
         DB_SSL_MODE: disable
-        #delete this.
