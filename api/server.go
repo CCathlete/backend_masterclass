@@ -24,10 +24,12 @@ func NewServer(store *sqlc.Store) (s *Server) {
 	return
 }
 
+func (server *Server) Start(address string) (err error) {
+	return server.router.Run(address)
+}
+
 func errorResponse(err error) (resBody gin.H) {
-	resBody = gin.H{
+	return gin.H{
 		"error": err.Error(),
 	}
-
-	return
 }
