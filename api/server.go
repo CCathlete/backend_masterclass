@@ -18,7 +18,6 @@ func NewServer(store *sqlc.Store) (s *Server) {
 		store:  store,
 		router: gin.Default(),
 	}
-
 	s.router.POST("/accounts", s.createAccount)
 
 	return
