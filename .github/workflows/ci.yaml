@@ -47,6 +47,13 @@ jobs:
 
     - name: Run Migrations
       run: make migrateup
+      env:
+        DB_HOST: postgres
+        DB_PORT: 5434
+        DB_USER: ccat
+        DB_PASS: feedthemsibsandpellots
+        DB_NAME: webgo
+        DB_SSL_MODE: disable
 
     - name: Test
       run: make test
