@@ -19,6 +19,7 @@ func NewServer(store *sqlc.Store) (s *Server) {
 		router: gin.Default(),
 	}
 	s.router.POST("/accounts", s.createAccount)
+	s.router.POST("/accounts/updbalance", s.updateAccountBalance)
 	s.router.GET("/accounts/:id", s.getAccount)
 	s.router.GET("/accounts/delete/:id", s.deleteAccount)
 	s.router.GET("/accounts/", s.listAccounts)

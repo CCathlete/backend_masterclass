@@ -124,3 +124,42 @@ func (server *Server) deleteAccount(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, fmt.Sprintln("Account ", account,
 		"deleted successfully."))
 }
+
+type updateAccountBalanceRequest struct {
+	Amount int64 `json:"amount" binding:"required"`
+	ID     int64 `json:"id" binding:"required"`
+}
+
+func (server *Server) updateAccountBalance(ctx *gin.Context) {
+	var req updateAccountBalanceRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	arg := sqlc.UpdateAccountBalanceParams{
+		Amount: req.Amount,
+		ID:     req.ID,
+	}
+
+	accountBefore, err := server.store.GetAccount(ctx, req.ID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		}
+	}
+
+	accountAfter, err := server.store.UpdateAccountBalance(ctx, arg)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	output := struct{ Before, After sqlc.Account }{
+		Before: accountBefore,
+		After:  accountAfter,
+	}
+
+	ctx.JSON(http.StatusOK, output)
+}
