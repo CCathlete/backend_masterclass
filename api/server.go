@@ -20,6 +20,7 @@ func NewServer(store *sqlc.Store) (s *Server) {
 	}
 	s.router.POST("/accounts", s.createAccount)
 	s.router.GET("/accounts/:id", s.getAccount)
+	s.router.GET("/accounts/delete/:id", s.deleteAccount)
 	s.router.GET("/accounts/", s.listAccounts)
 
 	return
