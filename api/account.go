@@ -62,6 +62,33 @@ func (server *Server) getAccount(ctx *gin.Context) {
 }
 
 // ------------------------------------------------------------------- //
+// Selects account + locks the selected rows until the transaction is
+// committed (e.g. suited for transaction use).
+type getAccountForUpdateRequest struct {
+	ID int64 `uri:"id" binding:"required,min=1"`
+}
+
+func (server *Server) getAccountForUpdate(ctx *gin.Context) {
+	var req getAccountForUpdateRequest
+	if err := ctx.ShouldBindUri(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	account, err := server.store.GetAccountForUpdate(ctx, req.ID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, account)
+}
+
+// ------------------------------------------------------------------- //
 /*
 We want to display the list of accounts in chunks (pages). Each chunk
 has a size of page_size. In order to navigate to the right place

@@ -18,12 +18,15 @@ func NewServer(store *sqlc.Store) (s *Server) {
 		store:  store,
 		router: gin.Default(),
 	}
+	// POST requests:
 	s.router.POST("/accounts", s.createAccount)
 	s.router.POST("/accounts/updbalance", s.updateAccountBalance)
 	s.router.POST("/accounts/setbalance", s.updateAccount)
-	s.router.GET("/accounts/:id", s.getAccount)
-	s.router.GET("/accounts/delete/:id", s.deleteAccount)
+	// GET requests:
 	s.router.GET("/accounts/", s.listAccounts)
+	s.router.GET("/accounts/:id", s.getAccount)
+	s.router.GET("/accounts/forupdate/:id", s.getAccountForUpdate)
+	s.router.GET("/accounts/delete/:id", s.deleteAccount)
 
 	return
 }
