@@ -66,8 +66,8 @@ in the whole list, we need to know how many pages to skip, this is
 the offset which is the (num_of_pages_to_skip - 1) * page_size.
 */
 type listAccountsRequest struct {
-	pageID   int32 `form:"page_id" binding:"required,min=1"`
-	pageSize int32 `form:"page_size" binding:"required,min=5,max=10"`
+	PageID   int32 `form:"page_id" binding:"required,min=1"`
+	PageSize int32 `form:"page_size" binding:"required,min=5,max=10"`
 }
 
 func (server *Server) listAccounts(ctx *gin.Context) {
@@ -78,8 +78,8 @@ func (server *Server) listAccounts(ctx *gin.Context) {
 	}
 
 	arg := sqlc.ListAccountParams{
-		Limit:  req.pageSize,
-		Offset: (req.pageID - 1) * req.pageSize,
+		Limit:  req.PageSize,
+		Offset: (req.PageID - 1) * req.PageSize,
 	}
 
 	account, err := server.store.ListAccount(ctx, arg)
