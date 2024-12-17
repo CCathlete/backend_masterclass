@@ -67,7 +67,7 @@ the offset which is the (num_of_pages_to_skip - 1) * page_size.
 */
 type listAccountsRequest struct {
 	pageID   int32 `form:"page_id" binding:"required,min=1"`
-	pageSize int32 `form:"page_size" binding:"required,min=5,max=5"`
+	pageSize int32 `form:"page_size" binding:"required,min=5,max=10"`
 }
 
 func (server *Server) listAccounts(ctx *gin.Context) {
