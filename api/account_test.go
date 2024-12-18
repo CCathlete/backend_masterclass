@@ -30,38 +30,49 @@ func TestGetAccountAPI(t *testing.T) {
 			name:      "ok",
 			accountId: account.ID,
 			buildStubs: func(store *mockdb.MockStore) {
+
 				store.EXPECT().GetAccount(gomock.Any(), gomock.Eq(account.ID)).
 					Times(1).
 					Return(account, nil)
+
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
-				// Checking response.
-				require.Equal(t, http.StatusOK, recorder.Code)
 
-				// Check response's body.
+				require.Equal(t, http.StatusOK, recorder.Code)
 				requireBodyMatchAccount(t, account, recorder.Body)
+
 			},
 		},
 		//TODO: Add more cases.
 	}
 
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+	for i := range testCases {
+		tc := testCases[i]
 
-	store := mockdb.NewMockStore(ctrl)
-	// build stubs.
+		t.Run(tc.name, func(t *testing.T) {
 
-	// Starting test server and sending request.
-	server := api.NewServer(store)
-	recorder := httptest.NewRecorder()
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
 
-	url := fmt.Sprintf("/accounts/%d", account.ID)
-	request, err := http.NewRequest(http.MethodGet, url, nil)
-	require.NoError(t, err)
+			store := mockdb.NewMockStore(ctrl)
+			// build stubs.
+			tc.buildStubs(store)
 
-	// We use the inner ServeHTTP method and not Gin's Run method because
-	// we want to use our recorder as a response writer.
-	server.Router.ServeHTTP(recorder, request)
+			// Starting test server and sending request.
+			server := api.NewServer(store)
+			recorder := httptest.NewRecorder()
+
+			url := fmt.Sprintf("/accounts/%d", account.ID)
+			request, err := http.NewRequest(http.MethodGet, url, nil)
+			require.NoError(t, err)
+
+			// We use the inner ServeHTTP method and not Gin's Run method
+			// because we want to use our recorder as a response writer.
+			server.Router.ServeHTTP(recorder, request)
+			tc.checkResponse(t, recorder)
+
+		})
+	}
 }
 
 func randomAccount() sqlc.Account {
