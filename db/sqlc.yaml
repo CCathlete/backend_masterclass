@@ -10,6 +10,6 @@ sql:
       emit_json_tags: true
       # I'm putting the following fields for later use.
       emit_prepared_queries: false
-      emit_interface: false
+      emit_interface: true
       emit_exact_table_names: false
       emit_empty_slices: true

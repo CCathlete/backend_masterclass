@@ -9,11 +9,11 @@ import (
 // Serves all HTTP requests for our banking service.
 
 type Server struct {
-	store  *sqlc.Store
+	store  sqlc.Store
 	router *gin.Engine
 }
 
-func NewServer(store *sqlc.Store) (s *Server) {
+func NewServer(store sqlc.Store) (s *Server) {
 	s = &Server{
 		store:  store,
 		router: gin.Default(),
