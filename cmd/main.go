@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	cfg := u.Must(u.LoadConfig("../")).(u.Config)
+	cfg := u.Must(u.LoadConfig("./")).(u.Config)
 	conn := u.Must(sqlc.ConnectToDB(cfg)).(*sql.DB)
 	defer conn.Close()
 
