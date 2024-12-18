@@ -20,14 +20,36 @@ import (
 func TestGetAccountAPI(t *testing.T) {
 	account := randomAccount()
 
+	testCases := []struct {
+		name          string
+		accountId     int64
+		buildStubs    func(store *mockdb.MockStore)
+		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
+	}{
+		{
+			name:      "ok",
+			accountId: account.ID,
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().GetAccount(gomock.Any(), gomock.Eq(account.ID)).
+					Times(1).
+					Return(account, nil)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				// Checking response.
+				require.Equal(t, http.StatusOK, recorder.Code)
+
+				// Check response's body.
+				requireBodyMatchAccount(t, account, recorder.Body)
+			},
+		},
+		//TODO: Add more cases.
+	}
+
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	store := mockdb.NewMockStore(ctrl)
 	// build stubs.
-	store.EXPECT().GetAccount(gomock.Any(), gomock.Eq(account.ID)).
-		Times(1).
-		Return(account, nil)
 
 	// Starting test server and sending request.
 	server := api.NewServer(store)
@@ -40,11 +62,6 @@ func TestGetAccountAPI(t *testing.T) {
 	// We use the inner ServeHTTP method and not Gin's Run method because
 	// we want to use our recorder as a response writer.
 	server.Router.ServeHTTP(recorder, request)
-	// Checking response.
-	require.Equal(t, http.StatusOK, recorder.Code)
-
-	// Check response's body.
-	requireMatchAccount(t, account, recorder.Body)
 }
 
 func randomAccount() sqlc.Account {
@@ -56,7 +73,7 @@ func randomAccount() sqlc.Account {
 	}
 }
 
-func requireMatchAccount(t *testing.T,
+func requireBodyMatchAccount(t *testing.T,
 	account sqlc.Account,
 	body *bytes.Buffer,
 ) {
