@@ -3,20 +3,17 @@ package main
 import (
 	"backend-masterclass/api"
 	"backend-masterclass/db/sqlc"
-	"backend-masterclass/util"
+	u "backend-masterclass/util"
 	"database/sql"
 )
 
-const (
-	serverAddress = "0.0.0.0:8080"
-)
-
 func main() {
-	conn := util.Must(sqlc.ConnectToDB()).(*sql.DB)
+	cfg := u.Must(u.LoadConfig(".")).(u.Config)
+	conn := u.Must(sqlc.ConnectToDB(cfg)).(*sql.DB)
 	defer conn.Close()
 
 	store := sqlc.NewStore(conn)
 	server := api.NewServer(store)
 
-	util.Must(nil, server.Start(serverAddress))
+	u.Must(nil, server.Start(cfg.ServerAddress))
 }
