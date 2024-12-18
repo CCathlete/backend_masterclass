@@ -26,5 +26,5 @@ mock:
 	mockgen -destination ./db/mock/${file_name} -package ${pkg_name}  /home/ccat/Repos/backend_masterclass/db/sqlc ${interfaces}
 
 # Command aliasing is considered a "phony target" so it's possible to run it repeatedly.
-.PHONY: connect migrateup migratedown sqlc test migraterestart server #dbfile
+.PHONY: connect migrateup migratedown sqlc test migraterestart server mock #dbfile
 
