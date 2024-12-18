@@ -2,7 +2,7 @@ package sqlc_test
 
 import (
 	"backend-masterclass/db/sqlc"
-	"backend-masterclass/util"
+	u "backend-masterclass/util"
 	"context"
 	"database/sql"
 	"testing"
@@ -17,7 +17,7 @@ import (
 func createRandomEntry(t *testing.T) sqlc.Entry {
 	arg := sqlc.CreateEntryParams{
 		AccountID: createRandomAccount(t).ID,
-		Amount:    util.RandomMoney(),
+		Amount:    u.RandomMoney(),
 	}
 
 	Entry, err := testQueries.CreateEntry(context.Background(), arg)
@@ -56,7 +56,7 @@ func TestUpdateEntry(t *testing.T) {
 
 	arg := sqlc.UpdateEntryParams{
 		ID:     Entry.ID,
-		Amount: util.RandomMoney(),
+		Amount: u.RandomMoney(),
 	}
 
 	result, err := testQueries.UpdateEntry(context.Background(), arg)
@@ -77,7 +77,7 @@ func TestUpdateEntryByAccount(t *testing.T) {
 
 	createArg := sqlc.CreateEntryParams{
 		AccountID: account.ID,
-		Amount:    util.RandomMoney(),
+		Amount:    u.RandomMoney(),
 	}
 
 	entry, err := testQueries.CreateEntry(context.Background(), createArg)
@@ -85,7 +85,7 @@ func TestUpdateEntryByAccount(t *testing.T) {
 
 	updateArg := sqlc.UpdateEntryByAccountParams{
 		AccountID: account.ID,
-		Amount:    util.RandomMoney(),
+		Amount:    u.RandomMoney(),
 	}
 
 	result, err := testQueries.UpdateEntryByAccount(context.Background(), updateArg)
@@ -136,7 +136,7 @@ func TestGetAccountEntries(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		createArg := sqlc.CreateEntryParams{
 			AccountID: account.ID,
-			Amount:    util.RandomMoney(),
+			Amount:    u.RandomMoney(),
 		}
 
 		_, err := testQueries.CreateEntry(context.Background(), createArg)

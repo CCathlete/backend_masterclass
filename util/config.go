@@ -1,4 +1,4 @@
-package util
+package u
 
 import "github.com/spf13/viper"
 

@@ -2,7 +2,7 @@ package sqlc_test
 
 import (
 	"backend-masterclass/db/sqlc"
-	"backend-masterclass/util"
+	u "backend-masterclass/util"
 	"context"
 	"database/sql"
 	"testing"
@@ -16,9 +16,9 @@ import (
 // test written here.
 func createRandomAccount(t *testing.T) sqlc.Account {
 	arg := sqlc.CreateAccountParams{
-		Owner:    util.RandomOwner(),
-		Balance:  util.RandomMoney(),
-		Currency: util.RandCurrency(),
+		Owner:    u.RandomOwner(),
+		Balance:  u.RandomMoney(),
+		Currency: u.RandCurrency(),
 	}
 
 	account, err := testQueries.CreateAccount(context.Background(), arg)
@@ -59,7 +59,7 @@ func TestUpdateAccount(t *testing.T) {
 
 	arg := sqlc.UpdateAccountParams{
 		ID:      account.ID,
-		Balance: util.RandomMoney(),
+		Balance: u.RandomMoney(),
 	}
 
 	result, err := testQueries.UpdateAccount(context.Background(), arg)

@@ -2,7 +2,7 @@ package sqlc_test
 
 import (
 	"backend-masterclass/db/sqlc"
-	"backend-masterclass/util"
+	u "backend-masterclass/util"
 	"context"
 	"database/sql"
 	"testing"
@@ -20,7 +20,7 @@ func createRandomTransfer(t *testing.T) sqlc.Transfer {
 	arg := sqlc.CreateTransferParams{
 		FromAccountID: account1.ID,
 		ToAccountID:   account2.ID,
-		Amount:        util.RandomMoney(),
+		Amount:        u.RandomMoney(),
 	}
 
 	Transfer, err := testQueries.CreateTransfer(context.Background(), arg)
@@ -63,7 +63,7 @@ func TestUpdateTransfer(t *testing.T) {
 
 	arg := sqlc.UpdateTransferParams{
 		ID:     Transfer.ID,
-		Amount: util.RandomMoney(),
+		Amount: u.RandomMoney(),
 	}
 
 	result, err := testQueries.UpdateTransfer(context.Background(), arg)
@@ -118,7 +118,7 @@ func TestGetTransfersFrom(t *testing.T) {
 		arg := sqlc.CreateTransferParams{
 			FromAccountID: fromAccount.ID,
 			ToAccountID:   toAccount.ID,
-			Amount:        normaliseRandomTMoney(util.RandomMoney()),
+			Amount:        normaliseRandomTMoney(u.RandomMoney()),
 		}
 
 		_, err := testQueries.CreateTransfer(context.Background(), arg)
@@ -141,7 +141,7 @@ func TestGetTransfersTo(t *testing.T) {
 		arg := sqlc.CreateTransferParams{
 			FromAccountID: fromAccount.ID,
 			ToAccountID:   toAccount.ID,
-			Amount:        normaliseRandomTMoney(util.RandomMoney()),
+			Amount:        normaliseRandomTMoney(u.RandomMoney()),
 		}
 
 		_, err := testQueries.CreateTransfer(context.Background(), arg)
