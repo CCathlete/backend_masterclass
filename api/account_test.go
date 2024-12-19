@@ -81,8 +81,8 @@ func TestGetAccountAPI(t *testing.T) {
 			accountId: -1,
 			buildStubs: func(store *mockdb.MockStore) {
 
-				// What this means is I expect the GetAccount method with any context and account.ID as the query id to be called 0 times.
-				store.EXPECT().GetAccount(gomock.Any(), gomock.Eq(account.ID)).
+				// What this means is I expect the GetAccount method with any context and any account ID as the query id to be called 0 times.
+				store.EXPECT().GetAccount(gomock.Any(), gomock.Any()).
 					Times(0)
 
 			},
