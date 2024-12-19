@@ -3,7 +3,6 @@ package sqlc
 import (
 	u "backend-masterclass/util"
 	"database/sql"
-	"fmt"
 	"log"
 	"os"
 	"testing"
@@ -14,7 +13,7 @@ var cfg = must(u.LoadConfig("../..")).(u.Config)
 var testDB = must(ConnectToDB(cfg)).(*sql.DB)
 
 func TestMain(m *testing.M) {
-	fmt.Println("Connecting to db...")
+	log.Println("Connecting to db...")
 
 	testQueries = New(testDB)
 
