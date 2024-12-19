@@ -1,7 +1,6 @@
-package sqlc_test
+package sqlc
 
 import (
-	"backend-masterclass/db/sqlc"
 	u "backend-masterclass/util"
 	"context"
 	"database/sql"
@@ -14,8 +13,8 @@ import (
 // We pass in the test to run testify/require functions.
 // This function is a validation a preparatino for each
 // test written here.
-func createRandomEntry(t *testing.T) sqlc.Entry {
-	arg := sqlc.CreateEntryParams{
+func createRandomEntry(t *testing.T) Entry {
+	arg := CreateEntryParams{
 		AccountID: createRandomAccount(t).ID,
 		Amount:    u.RandomMoney(),
 	}
@@ -54,7 +53,7 @@ func TestGetEntry(t *testing.T) {
 func TestUpdateEntry(t *testing.T) {
 	Entry := createRandomEntry(t)
 
-	arg := sqlc.UpdateEntryParams{
+	arg := UpdateEntryParams{
 		ID:     Entry.ID,
 		Amount: u.RandomMoney(),
 	}
@@ -75,7 +74,7 @@ func TestUpdateEntry(t *testing.T) {
 func TestUpdateEntryByAccount(t *testing.T) {
 	account := createRandomAccount(t)
 
-	createArg := sqlc.CreateEntryParams{
+	createArg := CreateEntryParams{
 		AccountID: account.ID,
 		Amount:    u.RandomMoney(),
 	}
@@ -83,7 +82,7 @@ func TestUpdateEntryByAccount(t *testing.T) {
 	entry, err := testQueries.CreateEntry(context.Background(), createArg)
 	require.NoError(t, err)
 
-	updateArg := sqlc.UpdateEntryByAccountParams{
+	updateArg := UpdateEntryByAccountParams{
 		AccountID: account.ID,
 		Amount:    u.RandomMoney(),
 	}
@@ -118,7 +117,7 @@ func TestListEntries(t *testing.T) {
 		createRandomEntry(t)
 	}
 
-	arg := sqlc.ListEntriesParams{
+	arg := ListEntriesParams{
 		Limit:  5,
 		Offset: 5, // Skips 5 matches before returning values.
 	}
@@ -134,7 +133,7 @@ func TestGetAccountEntries(t *testing.T) {
 	account := createRandomAccount(t)
 
 	for i := 0; i < 10; i++ {
-		createArg := sqlc.CreateEntryParams{
+		createArg := CreateEntryParams{
 			AccountID: account.ID,
 			Amount:    u.RandomMoney(),
 		}

@@ -1,7 +1,6 @@
-package sqlc_test
+package sqlc
 
 import (
-	"backend-masterclass/db/sqlc"
 	u "backend-masterclass/util"
 	"context"
 	"database/sql"
@@ -14,10 +13,10 @@ import (
 // We pass in the test to run testify/require functions.
 // This function is a validation a preparatino for each
 // test written here.
-func createRandomTransfer(t *testing.T) sqlc.Transfer {
+func createRandomTransfer(t *testing.T) Transfer {
 	account1 := createRandomAccount(t)
 	account2 := createRandomAccount(t)
-	arg := sqlc.CreateTransferParams{
+	arg := CreateTransferParams{
 		FromAccountID: account1.ID,
 		ToAccountID:   account2.ID,
 		Amount:        u.RandomMoney(),
@@ -61,7 +60,7 @@ func TestGetTransfer(t *testing.T) {
 func TestUpdateTransfer(t *testing.T) {
 	Transfer := createRandomTransfer(t)
 
-	arg := sqlc.UpdateTransferParams{
+	arg := UpdateTransferParams{
 		ID:     Transfer.ID,
 		Amount: u.RandomMoney(),
 	}
@@ -99,7 +98,7 @@ func TestListTransfers(t *testing.T) {
 		createRandomTransfer(t)
 	}
 
-	arg := sqlc.ListTransfersParams{
+	arg := ListTransfersParams{
 		Limit:  5,
 		Offset: 5, // Skips 5 matches before returning values.
 	}
@@ -115,7 +114,7 @@ func TestGetTransfersFrom(t *testing.T) {
 	fromAccount := createRandomAccount(t)
 	for i := 0; i < 10; i++ {
 		toAccount := createRandomAccount(t)
-		arg := sqlc.CreateTransferParams{
+		arg := CreateTransferParams{
 			FromAccountID: fromAccount.ID,
 			ToAccountID:   toAccount.ID,
 			Amount:        normaliseRandomTMoney(u.RandomMoney()),
@@ -138,7 +137,7 @@ func TestGetTransfersTo(t *testing.T) {
 	toAccount := createRandomAccount(t)
 	for i := 0; i < 10; i++ {
 		fromAccount := createRandomAccount(t)
-		arg := sqlc.CreateTransferParams{
+		arg := CreateTransferParams{
 			FromAccountID: fromAccount.ID,
 			ToAccountID:   toAccount.ID,
 			Amount:        normaliseRandomTMoney(u.RandomMoney()),

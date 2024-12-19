@@ -1,7 +1,6 @@
-package sqlc_test
+package sqlc
 
 import (
-	"backend-masterclass/db/sqlc"
 	"context"
 	"fmt"
 	"testing"
@@ -11,7 +10,7 @@ import (
 
 func TestTransferTx(t *testing.T) {
 	existed := make(map[int]bool)
-	store := sqlc.NewStore(testDB)
+	store := NewStore(testDB)
 	account1 := createRandomAccount(t)
 	account2 := createRandomAccount(t)
 	fmt.Println(">> before:", account1.Balance, account2.Balance)
@@ -28,16 +27,16 @@ func TestTransferTx(t *testing.T) {
 	amount := int64(10)
 
 	errs := make(chan error)
-	results := make(chan sqlc.TransferTxResult)
+	results := make(chan TransferTxResult)
 	var ctx context.Context
 
 	for i := 0; i < n; i++ {
 		txName := fmt.Sprintf("tx %d", i+1)
 		go func(txName string) {
 			ctx = context.WithValue(context.Background(),
-				sqlc.TxKey, txName)
+				TxKey, txName)
 			result, err := store.TransferTx(ctx,
-				sqlc.TransferTxParams{
+				TransferTxParams{
 					FromAccountID: account1.ID,
 					ToAccountID:   account2.ID,
 					Amount:        amount,
@@ -150,7 +149,7 @@ func TestTransferTx(t *testing.T) {
 
 // Here all we care about is if there are any deadlocks.
 func TestTransferTxDeadlock(t *testing.T) {
-	store := sqlc.NewStore(testDB)
+	store := NewStore(testDB)
 	account1 := createRandomAccount(t)
 	account2 := createRandomAccount(t)
 
@@ -167,7 +166,7 @@ func TestTransferTxDeadlock(t *testing.T) {
 			var err error
 
 			ctx = context.WithValue(context.Background(),
-				sqlc.TxKey, txName)
+				TxKey, txName)
 
 			fromAccount := account1
 			toAccount := account2
@@ -178,7 +177,7 @@ func TestTransferTxDeadlock(t *testing.T) {
 			}
 
 			_, err = store.TransferTx(ctx,
-				sqlc.TransferTxParams{
+				TransferTxParams{
 					FromAccountID: fromAccount.ID,
 					ToAccountID:   toAccount.ID,
 					Amount:        amount,

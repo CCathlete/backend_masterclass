@@ -1,7 +1,6 @@
-package sqlc_test
+package sqlc
 
 import (
-	"backend-masterclass/db/sqlc"
 	u "backend-masterclass/util"
 	"database/sql"
 	"fmt"
@@ -10,14 +9,14 @@ import (
 	"testing"
 )
 
-var testQueries *sqlc.Queries
+var testQueries *Queries
 var cfg = must(u.LoadConfig("../..")).(u.Config)
-var testDB = must(sqlc.ConnectToDB(cfg)).(*sql.DB)
+var testDB = must(ConnectToDB(cfg)).(*sql.DB)
 
 func TestMain(m *testing.M) {
 	fmt.Println("Connecting to db...")
 
-	testQueries = sqlc.New(testDB)
+	testQueries = New(testDB)
 
 	os.Exit(m.Run())
 }

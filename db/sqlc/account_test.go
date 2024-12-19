@@ -1,7 +1,6 @@
-package sqlc_test
+package sqlc
 
 import (
-	"backend-masterclass/db/sqlc"
 	u "backend-masterclass/util"
 	"context"
 	"database/sql"
@@ -14,8 +13,8 @@ import (
 // We pass in the test to run testify/require functions.
 // This function is a validation a preparatino for each
 // test written here.
-func createRandomAccount(t *testing.T) sqlc.Account {
-	arg := sqlc.CreateAccountParams{
+func createRandomAccount(t *testing.T) Account {
+	arg := CreateAccountParams{
 		Owner:    u.RandomOwner(),
 		Balance:  u.RandomMoney(),
 		Currency: u.RandCurrency(),
@@ -57,7 +56,7 @@ func TestGetAccount(t *testing.T) {
 func TestUpdateAccount(t *testing.T) {
 	account := createRandomAccount(t)
 
-	arg := sqlc.UpdateAccountParams{
+	arg := UpdateAccountParams{
 		ID:      account.ID,
 		Balance: u.RandomMoney(),
 	}
@@ -93,7 +92,7 @@ func TestListAccounts(t *testing.T) {
 		createRandomAccount(t)
 	}
 
-	arg := sqlc.ListAccountParams{
+	arg := ListAccountParams{
 		Limit:  5,
 		Offset: 5, // Skips 5 matches before returning values.
 	}
