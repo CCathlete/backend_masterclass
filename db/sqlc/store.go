@@ -7,13 +7,16 @@ import (
 	"log"
 )
 
+// Storage service.
 type Store interface {
 	Querier
 	TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error)
 }
 
-// SQLStore provides all functions to execute SQL queries and transactions.
+// SQLStore provides all functions to execute SQL queries and transactions. => Implementation of storage service.
 type SQLStore struct {
+	// Queries represents a collection of methods to interact with the database.
+	// It is embedded in other structs to provide access to the database queries.
 	*Queries
 	db *sql.DB
 }
