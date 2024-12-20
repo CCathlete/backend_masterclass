@@ -5,7 +5,7 @@ import (
 	"backend-masterclass/db/sqlc"
 	u "backend-masterclass/util"
 	"bytes"
-	"context"
+	"database/sql"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -17,34 +17,12 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func createRandomAccount(t *testing.T) sqlc.Account {
-	arg := sqlc.CreateAccountParams{
-		Owner:    u.RandomOwner(),
-		Balance:  u.RandomMoney(),
-		Currency: u.RandCurrency(),
-	}
-
-	// TODO: replace testQueries with mockdb.MockStore.
-	account, err := testQueries.CreateAccount(context.Background(), arg)
-	require.NoError(t, err)
-	require.NotEmpty(t, account)
-
-	require.Equal(t, arg.Owner, account.Owner)
-	require.Equal(t, arg.Balance, account.Balance)
-	require.Equal(t, arg.Currency, account.Currency)
-
-	require.NotZero(t, account.ID)
-	require.NotZero(t, account.CreatedAt)
-
-	return account
-}
-
 func TestTransferAPI(t *testing.T) {
 	amount := int64(10)
 
-	account1 := createRandomAccount(t)
-	account2 := createRandomAccount(t)
-	account3 := createRandomAccount(t)
+	account1 := randomAccount()
+	account2 := randomAccount()
+	account3 := randomAccount()
 
 	account1.Currency = u.USD
 	account2.Currency = u.USD
@@ -103,6 +81,7 @@ func TestTransferAPI(t *testing.T) {
 				"currency":        u.USD,
 			},
 			buildStubs: func(store *mockdb.MockStore) {
+				// The validation function gets the from account first and checks it before getting the to account. If the from account is not found, the to account is never checked.
 				store.EXPECT().
 					GetAccount(gomock.Any(), gomock.Eq(account1.ID)).
 					Times(1).
@@ -126,7 +105,7 @@ func TestTransferAPI(t *testing.T) {
 				"amount":          amount,
 				"currency":        u.USD,
 			},
-			// I think we need to always run get in the same order so that's why we have to call GetAccount for account1 first.
+			// The validation function gets the from account first, checks it, and only then gets and checks the to account.
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
 					GetAccount(gomock.Any(), gomock.Eq(account1.ID)).
@@ -153,34 +132,171 @@ func TestTransferAPI(t *testing.T) {
 				"currency":        u.USD,
 			},
 			buildStubs: func(store *mockdb.MockStore) {
+				// The validation funs on the from account first, checking the currency and only if it's correct, it checks the to account.
 				store.EXPECT().
 					GetAccount(gomock.Any(), gomock.Eq(account3.ID)).
 					Times(1).
 					Return(account3, nil)
+				// The to account is never checked because the from account has a currency mismatch.
+				store.EXPECT().
+					GetAccount(gomock.Any(), gomock.Eq(account2.ID)).
+					Times(0).
+					Return(account2, nil)
+				store.EXPECT().
+					TransferTx(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusBadRequest, recorder.Code)
+			},
+		},
+		{
+			name: "to account currency mismatch",
+			body: gin.H{
+				"from_account_id": account1.ID,
+				"to_account_id":   account3.ID,
+				"amount":          amount,
+				"currency":        u.USD,
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				// Both accounts exist but when the to account is checked, it has a currency mismatch. So the transfer is not executed.
+				store.EXPECT().
+					GetAccount(gomock.Any(), gomock.Eq(account1.ID)).
+					Times(1).
+					Return(account1, nil)
+				store.EXPECT().
+					GetAccount(gomock.Any(), gomock.Eq(account3.ID)).
+					Times(1).
+					Return(account3, nil)
+				store.EXPECT().
+					TransferTx(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusBadRequest, recorder.Code)
+			},
+		},
+		{
+			name: "invalid currency",
+			body: gin.H{
+				"from_account_id": account1.ID,
+				"to_account_id":   account2.ID,
+				"amount":          amount,
+				"currency":        "invalid_coin",
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				// We won't even get to the validation function because the gin context checks the currency in the response json through a binding validator.
+				store.EXPECT().
+					GetAccount(gomock.Any(), gomock.Eq(account1.ID)).
+					Times(0)
+				store.EXPECT().
+					GetAccount(gomock.Any(), gomock.Eq(account2.ID)).
+					Times(0)
+				store.EXPECT().
+					TransferTx(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusBadRequest, recorder.Code)
+			},
+		},
+		{
+			name: "negative amount",
+			body: gin.H{
+				"from_account_id": account1.ID,
+				"to_account_id":   account2.ID,
+				"amount":          -amount,
+				"currency":        u.USD,
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				// We won't even get to the validation function because the gin context checks the amount in the response json through a binding validator.
+				store.EXPECT().
+					GetAccount(gomock.Any(), gomock.Eq(account1.ID)).
+					Times(0)
+				store.EXPECT().
+					GetAccount(gomock.Any(), gomock.Eq(account2.ID)).
+					Times(0)
+				store.EXPECT().
+					TransferTx(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusBadRequest, recorder.Code)
+			},
+		},
+		{
+			name: "GetAccount error",
+			body: gin.H{
+				"from_account_id": account1.ID,
+				"to_account_id":   account2.ID,
+				"amount":          amount,
+				"currency":        u.USD,
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				// We simulate an internal error in the database. We won't get the second account because the validation function stops at the error it encounters.
+				store.EXPECT().
+					GetAccount(gomock.Any(), gomock.Eq(account1.ID)).
+					Times(0).
+					Return(sqlc.Account{}, sql.ErrConnDone)
+				store.EXPECT().
+					TransferTx(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+			},
+		},
+		{
+			name: "TransferTx error",
+			body: gin.H{
+				"from_account_id": account1.ID,
+				"to_account_id":   account2.ID,
+				"amount":          amount,
+				"currency":        u.USD,
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				// We will get both accounts but the transfer will fail. The TransferTx function will return an error and the createTransfer function will write it to the response.
+				store.EXPECT().
+					GetAccount(gomock.Any(), gomock.Eq(account1.ID)).
+					Times(1).
+					Return(account1, nil)
 				store.EXPECT().
 					GetAccount(gomock.Any(), gomock.Eq(account2.ID)).
 					Times(1).
 					Return(account2, nil)
 				store.EXPECT().
 					TransferTx(gomock.Any(), gomock.Any()).
-					Times(0)
+					Times(1).
+					Return(sqlc.Transfer{}, sql.ErrTxDone)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
 			},
 		},
-		{
-			name: "to account currency mismatch",
-		},
-		{
-			name: "invalid currency",
-		},
-		{
-			name: "negative amount",
-		},
-		{
-			name: "GetAccount error",
-		},
-		{
-			name: "TransferTx error",
-		},
+	}
+
+	for i := range testCases {
+		tc := testCases[i]
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			store := mockdb.NewMockStore(ctrl)
+			tc.buildStubs(store)
+
+			server := NewServer(store)
+			recorder := httptest.NewRecorder()
+
+			data, err := json.Marshal(tc.body)
+			require.NoError(t, err)
+
+			url := "/transfers"
+			request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(data)) // We create a new request with the data we created.
+			require.NoError(t, err)
+
+			server.Router.ServeHTTP(recorder, request)
+			tc.checkResponse(t, recorder)
+		})
 	}
 
 }
