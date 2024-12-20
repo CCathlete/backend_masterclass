@@ -30,6 +30,7 @@ func (server *Server) createTransfer(ctx *gin.Context) {
 		FromAccountID: req.FromAccountID,
 		ToAccountID:   req.ToAccountID,
 		Amount:        req.Amount,
+		Currency:      req.Currency,
 	}
 
 	if !server.validTransferParams(ctx, arg) {
@@ -38,7 +39,6 @@ func (server *Server) createTransfer(ctx *gin.Context) {
 	}
 
 	// After we validated the transfer parameters, we can proceed with the transfer.
-	arg.Currency = req.Currency
 	transfer, err := server.store.TransferTx(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
