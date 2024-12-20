@@ -4,6 +4,7 @@ import (
 	"backend-masterclass/db/sqlc"
 	"database/sql"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -13,8 +14,9 @@ type createTransferRequest struct {
 	FromAccountID int64 `json:"from_account_id" binding:"required"`
 	ToAccountID   int64 `json:"to_account_id" binding:"required"`
 	// Amount greater than 0 and not min = 1 because we want to allow fractions if we'll use float insead of int in the future.
-	Amount   int64 `json:"amount" binding:"required,gt=0"`
-	Currency int64 `json:"currency" binding:"required,oneof=ILS USD EUR"`
+	Amount int64 `json:"amount" binding:"required,gt=0"`
+	// True for both accounts (in the future we might add money conversion and allow different currencies).
+	Currency string `json:"currency" binding:"required,oneof=ILS USD EUR"`
 }
 
 func (server *Server) createTransfer(ctx *gin.Context) {
@@ -24,13 +26,20 @@ func (server *Server) createTransfer(ctx *gin.Context) {
 		return
 	}
 
-	arg := sqlc.CreateTransferParams{
+	arg := sqlc.TransferTxParams{
 		FromAccountID: req.FromAccountID,
 		ToAccountID:   req.ToAccountID,
 		Amount:        req.Amount,
 	}
 
-	transfer, err := server.store.CreateTransfer(ctx, arg)
+	if !server.validTransferParams(ctx, arg) {
+		ctx.JSON(http.StatusBadRequest, errorResponse(fmt.Errorf("invalid transfer parameters")))
+		return
+	}
+
+	// After we validated the transfer parameters, we can proceed with the transfer.
+	arg.Currency = req.Currency
+	transfer, err := server.store.TransferTx(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -176,4 +185,50 @@ func (server *Server) updateTransfer(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, output)
+}
+
+// ------------------------------------------------------------------- //
+func (s *Server) validTransferParams(
+	ctx *gin.Context,
+	arg sqlc.TransferTxParams,
+) bool {
+
+	if arg.FromAccountID == arg.ToAccountID {
+		log.Println("FromAccountID and ToAccountID must be different.")
+		return false
+	}
+	if arg.Amount <= 0 {
+		log.Println("Amount must be greater than 0.")
+		return false
+	}
+	if arg.Currency != "ILS" && arg.Currency != "USD" && arg.Currency != "EUR" {
+		log.Println("Currency must be ILS, USD or EUR.")
+		return false
+	}
+	if arg.FromAccountID < 1 || arg.ToAccountID < 1 {
+		log.Println("Account IDs must be greater than 0.")
+		return false
+	}
+
+	fromAccount, err := s.store.GetAccount(ctx, arg.FromAccountID)
+	if err != nil {
+		log.Printf("FromAccountID (%d) does not exist.\n", arg.FromAccountID)
+		return false
+	}
+	if fromAccount.Currency != arg.Currency {
+		log.Printf("FromAccountID (%d) currency is different from the transfer currency.\n", arg.FromAccountID)
+		return false
+	}
+
+	toAccount, err := s.store.GetAccount(ctx, arg.ToAccountID)
+	if err != nil {
+		log.Printf("ToAccountID (%d) does not exist.\n", arg.ToAccountID)
+		return false
+	}
+	if toAccount.Currency != arg.Currency {
+		log.Printf("ToAccountID (%d) currency is different from the transfer currency.\n", arg.ToAccountID)
+		return false
+	}
+
+	return true
 }
