@@ -4,6 +4,8 @@ import (
 	"backend-masterclass/db/sqlc"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
 )
 
 // Serves all HTTP requests for our banking service.
@@ -18,6 +20,10 @@ func NewServer(store sqlc.Store) (s *Server) {
 		store:  store,
 		Router: gin.Default(),
 	}
+	if validationEngine, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		validationEngine.RegisterValidation("validcurrency", validCurrency)
+	}
+
 	routeAccount(s)
 	routeTransfer(s)
 

@@ -16,7 +16,7 @@ type createTransferRequest struct {
 	// Amount greater than 0 and not min = 1 because we want to allow fractions if we'll use float insead of int in the future.
 	Amount int64 `json:"amount" binding:"required,gt=0"`
 	// True for both accounts (in the future we might add money conversion and allow different currencies).
-	Currency string `json:"currency" binding:"required,oneof=ILS USD EUR"`
+	Currency string `json:"currency" binding:"required,validcurrency"`
 }
 
 func (server *Server) createTransfer(ctx *gin.Context) {
