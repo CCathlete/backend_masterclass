@@ -15,7 +15,7 @@ insert into entries (
   amount
 )
 values ($1, $2)
-returning id, account_id, amount, created_at
+returning id, account_id, amount, currency, created_at
 `
 
 type CreateEntryParams struct {
@@ -30,6 +30,7 @@ func (q *Queries) CreateEntry(ctx context.Context, arg CreateEntryParams) (Entry
 		&i.ID,
 		&i.AccountID,
 		&i.Amount,
+		&i.Currency,
 		&i.CreatedAt,
 	)
 	return i, err
@@ -45,7 +46,7 @@ func (q *Queries) DeleteEntry(ctx context.Context, id int64) error {
 }
 
 const getAccountEntries = `-- name: GetAccountEntries :many
-select id, account_id, amount, created_at from entries
+select id, account_id, amount, currency, created_at from entries
 where account_id = $1
 order BY id
 `
@@ -63,6 +64,7 @@ func (q *Queries) GetAccountEntries(ctx context.Context, accountID int64) ([]Ent
 			&i.ID,
 			&i.AccountID,
 			&i.Amount,
+			&i.Currency,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -79,7 +81,7 @@ func (q *Queries) GetAccountEntries(ctx context.Context, accountID int64) ([]Ent
 }
 
 const getEntry = `-- name: GetEntry :one
-select id, account_id, amount, created_at from entries
+select id, account_id, amount, currency, created_at from entries
 where id = $1 limit 1
 `
 
@@ -90,13 +92,14 @@ func (q *Queries) GetEntry(ctx context.Context, id int64) (Entry, error) {
 		&i.ID,
 		&i.AccountID,
 		&i.Amount,
+		&i.Currency,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const listEntries = `-- name: ListEntries :many
-select id, account_id, amount, created_at from entries
+select id, account_id, amount, currency, created_at from entries
 order BY id
 limit $1
 offset $2
@@ -120,6 +123,7 @@ func (q *Queries) ListEntries(ctx context.Context, arg ListEntriesParams) ([]Ent
 			&i.ID,
 			&i.AccountID,
 			&i.Amount,
+			&i.Currency,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -138,7 +142,7 @@ func (q *Queries) ListEntries(ctx context.Context, arg ListEntriesParams) ([]Ent
 const updateEntry = `-- name: UpdateEntry :one
 update entries set amount = $1 -- , another_param = $3
 where id = $2
-returning id, account_id, amount, created_at
+returning id, account_id, amount, currency, created_at
 `
 
 type UpdateEntryParams struct {
@@ -154,6 +158,7 @@ func (q *Queries) UpdateEntry(ctx context.Context, arg UpdateEntryParams) (Entry
 		&i.ID,
 		&i.AccountID,
 		&i.Amount,
+		&i.Currency,
 		&i.CreatedAt,
 	)
 	return i, err
@@ -162,7 +167,7 @@ func (q *Queries) UpdateEntry(ctx context.Context, arg UpdateEntryParams) (Entry
 const updateEntryByAccount = `-- name: UpdateEntryByAccount :one
 update entries set amount = $1 -- , another_param = $3
 where account_id = $2
-returning id, account_id, amount, created_at
+returning id, account_id, amount, currency, created_at
 `
 
 type UpdateEntryByAccountParams struct {
@@ -177,6 +182,7 @@ func (q *Queries) UpdateEntryByAccount(ctx context.Context, arg UpdateEntryByAcc
 		&i.ID,
 		&i.AccountID,
 		&i.Amount,
+		&i.Currency,
 		&i.CreatedAt,
 	)
 	return i, err

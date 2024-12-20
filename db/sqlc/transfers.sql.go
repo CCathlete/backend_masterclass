@@ -14,7 +14,7 @@ insert into
   transfers (from_account_id, to_account_id, amount)
 values
   ($1, $2, $3)
-  returning id, from_account_id, to_account_id, amount, created_at
+  returning id, from_account_id, to_account_id, amount, currency, created_at
 `
 
 type CreateTransferParams struct {
@@ -31,6 +31,7 @@ func (q *Queries) CreateTransfer(ctx context.Context, arg CreateTransferParams) 
 		&i.FromAccountID,
 		&i.ToAccountID,
 		&i.Amount,
+		&i.Currency,
 		&i.CreatedAt,
 	)
 	return i, err
@@ -49,7 +50,7 @@ func (q *Queries) DeleteTransfer(ctx context.Context, id int64) error {
 
 const getTransfer = `-- name: GetTransfer :one
 select
-  id, from_account_id, to_account_id, amount, created_at
+  id, from_account_id, to_account_id, amount, currency, created_at
 from
   transfers
 where
@@ -64,6 +65,7 @@ func (q *Queries) GetTransfer(ctx context.Context, id int64) (Transfer, error) {
 		&i.FromAccountID,
 		&i.ToAccountID,
 		&i.Amount,
+		&i.Currency,
 		&i.CreatedAt,
 	)
 	return i, err
@@ -71,7 +73,7 @@ func (q *Queries) GetTransfer(ctx context.Context, id int64) (Transfer, error) {
 
 const getTransfersFrom = `-- name: GetTransfersFrom :many
 select
-  id, from_account_id, to_account_id, amount, created_at
+  id, from_account_id, to_account_id, amount, currency, created_at
 from
   transfers
 where
@@ -92,6 +94,7 @@ func (q *Queries) GetTransfersFrom(ctx context.Context, fromAccountID int64) ([]
 			&i.FromAccountID,
 			&i.ToAccountID,
 			&i.Amount,
+			&i.Currency,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -109,7 +112,7 @@ func (q *Queries) GetTransfersFrom(ctx context.Context, fromAccountID int64) ([]
 
 const getTransfersTo = `-- name: GetTransfersTo :many
 select
-  id, from_account_id, to_account_id, amount, created_at
+  id, from_account_id, to_account_id, amount, currency, created_at
 from
   transfers
 where
@@ -130,6 +133,7 @@ func (q *Queries) GetTransfersTo(ctx context.Context, toAccountID int64) ([]Tran
 			&i.FromAccountID,
 			&i.ToAccountID,
 			&i.Amount,
+			&i.Currency,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -147,7 +151,7 @@ func (q *Queries) GetTransfersTo(ctx context.Context, toAccountID int64) ([]Tran
 
 const listTransfers = `-- name: ListTransfers :many
 select
-  id, from_account_id, to_account_id, amount, created_at
+  id, from_account_id, to_account_id, amount, currency, created_at
 from
   transfers
 order by
@@ -177,6 +181,7 @@ func (q *Queries) ListTransfers(ctx context.Context, arg ListTransfersParams) ([
 			&i.FromAccountID,
 			&i.ToAccountID,
 			&i.Amount,
+			&i.Currency,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -198,7 +203,7 @@ set
   amount = $1 -- , another_param = $3
 where
   id = $2
-  returning id, from_account_id, to_account_id, amount, created_at
+  returning id, from_account_id, to_account_id, amount, currency, created_at
 `
 
 type UpdateTransferParams struct {
@@ -215,6 +220,7 @@ func (q *Queries) UpdateTransfer(ctx context.Context, arg UpdateTransferParams) 
 		&i.FromAccountID,
 		&i.ToAccountID,
 		&i.Amount,
+		&i.Currency,
 		&i.CreatedAt,
 	)
 	return i, err

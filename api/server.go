@@ -47,7 +47,6 @@ func routeAccount(s *Server) {
 }
 
 func routeTransfer(s *Server) {
-	// TODO: Add routes for other transfer operations.
 	// POST requests:
 	s.Router.POST("/transfers", s.createTransfer)
 	s.Router.POST("/transfers/updamount", s.updateTransfer)

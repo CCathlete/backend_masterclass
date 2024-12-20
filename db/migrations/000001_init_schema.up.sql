@@ -14,6 +14,7 @@ create table
     id bigserial primary KEY,
     account_id bigint not null references accounts (id) on delete cascade,
     amount bigint not null, -- Can be positive or negative
+    currency varchar not null,
     created_at timestamptz not null default (now ())
   )
 ;
@@ -24,6 +25,7 @@ create table
     from_account_id bigint not null references accounts (id) on delete cascade,
     to_account_id bigint not null references accounts (id) on delete cascade,
     amount bigint not null check (amount > 0), -- Can be only positive (absolute value)
+    currency varchar not null,
     created_at timestamptz not null default (now ())
   )
 ;
