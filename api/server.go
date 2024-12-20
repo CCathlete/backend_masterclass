@@ -50,6 +50,9 @@ func routeTransfer(s *Server) {
 	// TODO: Add routes for other transfer operations.
 	// POST requests:
 	s.Router.POST("/transfers", s.createTransfer)
+	s.Router.POST("/transfers/updamount", s.updateTransfer)
 	// GET Requests:
+	s.Router.GET("/transfers", s.listTransfers)
 	s.Router.GET("/transfers/:id", s.getTransfer)
+	s.Router.GET("/transfers/delete/:id", s.deleteTransfer)
 }
