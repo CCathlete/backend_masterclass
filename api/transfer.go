@@ -12,7 +12,9 @@ import (
 type createTransferRequest struct {
 	FromAccountID int64 `json:"from_account_id" binding:"required"`
 	ToAccountID   int64 `json:"to_account_id" binding:"required"`
-	Amount        int64 `json:"amount" binding:"required,oneof=ILS USD EUR"`
+	// Amount greater than 0 and not min = 1 because we want to allow fractions if we'll use float insead of int in the future.
+	Amount   int64 `json:"amount" binding:"required,gt=0"`
+	Currency int64 `json:"currency" binding:"required,oneof=ILS USD EUR"`
 }
 
 func (server *Server) createTransfer(ctx *gin.Context) {
