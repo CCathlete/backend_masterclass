@@ -12,19 +12,21 @@ import (
 const createEntry = `-- name: CreateEntry :one
 insert into entries (
   account_id,
-  amount
+  amount,
+  currency
 )
-values ($1, $2)
+values ($1, $2, $3)
 returning id, account_id, amount, currency, created_at
 `
 
 type CreateEntryParams struct {
-	AccountID int64 `json:"account_id"`
-	Amount    int64 `json:"amount"`
+	AccountID int64  `json:"account_id"`
+	Amount    int64  `json:"amount"`
+	Currency  string `json:"currency"`
 }
 
 func (q *Queries) CreateEntry(ctx context.Context, arg CreateEntryParams) (Entry, error) {
-	row := q.db.QueryRowContext(ctx, createEntry, arg.AccountID, arg.Amount)
+	row := q.db.QueryRowContext(ctx, createEntry, arg.AccountID, arg.Amount, arg.Currency)
 	var i Entry
 	err := row.Scan(
 		&i.ID,

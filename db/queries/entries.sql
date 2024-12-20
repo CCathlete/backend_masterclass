@@ -1,9 +1,10 @@
 -- name: CreateEntry :one
 insert into entries (
   account_id,
-  amount
+  amount,
+  currency
 )
-values ($1, $2)
+values ($1, $2, $3)
 returning *
 ;
 

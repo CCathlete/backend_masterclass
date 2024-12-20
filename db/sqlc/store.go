@@ -116,6 +116,7 @@ func (store *SQLStore) TransferTx(ctx context.Context, arg TransferTxParams) (Tr
 			result.FromEntry, err = q.CreateEntry(ctx, CreateEntryParams{
 				AccountID: arg.FromAccountID,
 				Amount:    -(arg.Amount), // Currency exits this account.
+				Currency:  arg.Currency,
 			})
 			if err != nil {
 				return fmt.Errorf("%s: TransferTx: %w", txName, err)
@@ -124,6 +125,7 @@ func (store *SQLStore) TransferTx(ctx context.Context, arg TransferTxParams) (Tr
 			result.ToEntry, err = q.CreateEntry(ctx, CreateEntryParams{
 				AccountID: arg.ToAccountID,
 				Amount:    +(arg.Amount), // Currency enters this account.
+				Currency:  arg.Currency,
 			})
 			if err != nil {
 				return fmt.Errorf("%s: TransferTx: %w", txName, err)

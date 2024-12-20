@@ -201,12 +201,8 @@ func (s *Server) validTransferParams(
 		log.Println("Amount must be greater than 0.")
 		return false
 	}
-	if arg.Currency != "ILS" && arg.Currency != "USD" && arg.Currency != "EUR" {
-		log.Println("Currency must be ILS, USD or EUR.")
-		return false
-	}
 	if arg.FromAccountID < 1 || arg.ToAccountID < 1 {
-		log.Println("Account IDs must be greater than 0.")
+		log.Println("Account IDs must be at least 1.")
 		return false
 	}
 
