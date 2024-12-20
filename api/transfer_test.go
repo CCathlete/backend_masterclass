@@ -24,6 +24,7 @@ func createRandomAccount(t *testing.T) sqlc.Account {
 		Currency: u.RandCurrency(),
 	}
 
+	// TODO: replace testQueries with mockdb.MockStore.
 	account, err := testQueries.CreateAccount(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, account)
@@ -92,6 +93,93 @@ func TestTransferAPI(t *testing.T) {
 					Currency:      u.USD,
 				})
 			},
+		},
+		{
+			name: "from account not found",
+			body: gin.H{
+				"from_account_id": account1.ID,
+				"to_account_id":   account2.ID,
+				"amount":          amount,
+				"currency":        u.USD,
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					GetAccount(gomock.Any(), gomock.Eq(account1.ID)).
+					Times(1).
+					Return(sqlc.Account{}, sqlc.ErrRecordNotFound)
+				store.EXPECT().
+					GetAccount(gomock.Any(), gomock.Eq(account2.ID)).
+					Times(0)
+				store.EXPECT().
+					TransferTx(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusNotFound, recorder.Code)
+			},
+		},
+		{
+			name: "to account not found",
+			body: gin.H{
+				"from_account_id": account1.ID,
+				"to_account_id":   account2.ID,
+				"amount":          amount,
+				"currency":        u.USD,
+			},
+			// I think we need to always run get in the same order so that's why we have to call GetAccount for account1 first.
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					GetAccount(gomock.Any(), gomock.Eq(account1.ID)).
+					Times(1).
+					Return(account1, nil)
+				store.EXPECT().
+					GetAccount(gomock.Any(), gomock.Eq(account2.ID)).
+					Times(1).
+					Return(sqlc.Account{}, sqlc.ErrRecordNotFound)
+				store.EXPECT().
+					TransferTx(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusNotFound, recorder.Code)
+			},
+		},
+		{
+			name: "from account currency mismatch",
+			body: gin.H{
+				"from_account_id": account3.ID,
+				"to_account_id":   account2.ID,
+				"amount":          amount,
+				"currency":        u.USD,
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					GetAccount(gomock.Any(), gomock.Eq(account3.ID)).
+					Times(1).
+					Return(account3, nil)
+				store.EXPECT().
+					GetAccount(gomock.Any(), gomock.Eq(account2.ID)).
+					Times(1).
+					Return(account2, nil)
+				store.EXPECT().
+					TransferTx(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+		},
+		{
+			name: "to account currency mismatch",
+		},
+		{
+			name: "invalid currency",
+		},
+		{
+			name: "negative amount",
+		},
+		{
+			name: "GetAccount error",
+		},
+		{
+			name: "TransferTx error",
 		},
 	}
 
