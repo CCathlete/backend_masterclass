@@ -24,12 +24,12 @@ limit
 -- name: UpdateUser :one
 update users
 set
-  username = $2,
-  hashed_password = $3,
-  full_name = $4,
-  email = $5
+  username = sqlc.arg(new_username),
+  hashed_password = sqlc.arg(hashed_password),
+  full_name = sqlc.arg(full_name),
+  email = sqlc.arg(email)
 where
-  username = $1 -- The old username.
+  username = sqlc.arg(username) -- The old username.
   returning *
 ;
 

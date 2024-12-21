@@ -17,6 +17,8 @@ func createRandomUser(t *testing.T) User {
 	arg := CreateUserParams{
 		FullName:       u.RandomFullName(),
 		HashedPassword: u.HashPassword(u.RandomPassword()),
+		Username:       u.RandomUsername(),
+		Email:          u.RandomEmail(),
 	}
 
 	user, err := testQueries.CreateUser(context.Background(), arg)
@@ -54,23 +56,26 @@ func TestGetUser(t *testing.T) {
 
 func TestUpdateUser(t *testing.T) {
 	user := createRandomUser(t)
+	newUsername := u.RandomUsername()
 
 	arg := UpdateUserParams{
 		Username:       user.Username,
-		HashedPassword: u.RandomMoney(),
+		NewUsername:    newUsername,
+		FullName:       user.FullName,
+		HashedPassword: user.HashedPassword,
+		Email:          user.Email,
 	}
 
 	result, err := testQueries.UpdateUser(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, result)
 
-	require.Equal(t, user.Username, result.Username)
+	require.Equal(t, newUsername, result.Username)
 	require.Equal(t, user.FullName, result.FullName)
 	// The balance should change to the new value.
 	require.Equal(t, arg.HashedPassword, result.HashedPassword)
 	require.Equal(t, user.FullName, result.FullName)
-	// There might be a short delay from creation of the random user
-	// to its storage in the DB and we don't this to fail the test.
+	// NOTE: This is not true in case we change the password.
 	require.WithinDuration(t, user.PasswordChangedAt, result.PasswordChangedAt, time.Second)
 }
 
