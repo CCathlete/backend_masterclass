@@ -21,7 +21,6 @@ limit
   1
 ;
 
--- If there are no return values we use :exec instead of :one/many
 -- name: UpdateUser :one
 update users
 set
@@ -47,6 +46,7 @@ offset
   $2
 ;
 
+-- If there are no return values we use :exec instead of :one/many
 -- name: DeleteUser :exec
 delete from users
 where
