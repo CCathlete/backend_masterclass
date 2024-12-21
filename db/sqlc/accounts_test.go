@@ -14,8 +14,10 @@ import (
 // This function is a validation a preparatino for each
 // test written here.
 func createRandomAccount(t *testing.T) Account {
+	user := createRandomUser(t)
+
 	arg := CreateAccountParams{
-		Owner:    u.RandomOwner(),
+		Owner:    user.Username,
 		Balance:  u.RandomMoney(),
 		Currency: u.RandCurrency(),
 	}

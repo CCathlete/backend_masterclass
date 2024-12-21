@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -121,10 +122,23 @@ func TestGetAccountAPI(t *testing.T) {
 	}
 }
 
+func randomUser() sqlc.User {
+	return sqlc.User{
+		Username:          u.RandomUsername(),
+		FullName:          u.RandomOwner(),
+		HashedPassword:    u.RandomOwner(),
+		Email:             u.RandomEmail(),
+		PasswordChangedAt: time.Now(),
+		CreatedAt:         time.Now(),
+	}
+}
+
 func randomAccount() sqlc.Account {
+	user := randomUser()
+
 	return sqlc.Account{
 		ID:       u.RandomInt(1, 100),
-		Owner:    u.RandomOwner(),
+		Owner:    user.Username,
 		Balance:  u.RandomMoney(),
 		Currency: u.RandCurrency(),
 	}
