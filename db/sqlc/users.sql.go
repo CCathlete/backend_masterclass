@@ -18,7 +18,7 @@ insert into
     email
     ) values (
       $1, $2, $3, $4
-    ) returning username, hashed_password, full_name, email, password_changed_at
+    ) returning username, hashed_password, full_name, email, password_changed_at, created_at
 `
 
 type CreateUserParams struct {
@@ -42,6 +42,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.FullName,
 		&i.Email,
 		&i.PasswordChangedAt,
+		&i.CreatedAt,
 	)
 	return i, err
 }
@@ -60,7 +61,7 @@ func (q *Queries) DeleteUser(ctx context.Context, username string) error {
 
 const getUser = `-- name: GetUser :one
 select
-  username, hashed_password, full_name, email, password_changed_at
+  username, hashed_password, full_name, email, password_changed_at, created_at
 from
   users
 where
@@ -78,13 +79,14 @@ func (q *Queries) GetUser(ctx context.Context, username string) (User, error) {
 		&i.FullName,
 		&i.Email,
 		&i.PasswordChangedAt,
+		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const listUsers = `-- name: ListUsers :many
 select
-  username, hashed_password, full_name, email, password_changed_at
+  username, hashed_password, full_name, email, password_changed_at, created_at
 from
   users
 order by
@@ -115,6 +117,7 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]User, e
 			&i.FullName,
 			&i.Email,
 			&i.PasswordChangedAt,
+			&i.CreatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -138,7 +141,7 @@ set
   email = $4
 where
   username = $5 -- The old username.
-  returning username, hashed_password, full_name, email, password_changed_at
+  returning username, hashed_password, full_name, email, password_changed_at, created_at
 `
 
 type UpdateUserParams struct {
@@ -164,6 +167,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.FullName,
 		&i.Email,
 		&i.PasswordChangedAt,
+		&i.CreatedAt,
 	)
 	return i, err
 }

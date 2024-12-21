@@ -53,6 +53,7 @@ func TestGetUser(t *testing.T) {
 	// There might be a short delay from creation of the random user
 	// to its storage in the DB and we don't this to fail the test.
 	require.WithinDuration(t, user.PasswordChangedAt, result.PasswordChangedAt, time.Second)
+	require.WithinDuration(t, user.CreatedAt, result.CreatedAt, time.Second)
 }
 
 func TestUpdateUser(t *testing.T) {
