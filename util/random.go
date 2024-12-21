@@ -60,7 +60,7 @@ func RandCurrency() string {
 	return currencies[rand.Intn(l)]
 }
 
-func RandomUserName() string {
+func RandomUsername() string {
 	return RandomStr(6)
 }
 
