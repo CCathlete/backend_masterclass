@@ -36,7 +36,7 @@ func (server *Server) createAccount(ctx *gin.Context) {
 			switch pgxErr.Code {
 			// Unique violation, foreign key violation
 			case "23505", "23503":
-				ctx.JSON(http.StatusConflict, errorResponse(err))
+				ctx.JSON(http.StatusForbidden, errorResponse(err))
 				return
 			}
 		}
