@@ -4,8 +4,6 @@ import (
 	"math/rand"
 	"strings"
 	"time"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 /*
@@ -76,13 +74,4 @@ func RandomFullName() string {
 
 func RandomPassword() string {
 	return RandomStr(8)
-}
-
-func HashPassword(password string) (hash string) {
-	bcryptPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		panic(err)
-	}
-	hash = string(bcryptPassword)
-	return
 }
