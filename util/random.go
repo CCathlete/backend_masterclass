@@ -4,6 +4,8 @@ import (
 	"math/rand"
 	"strings"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 /*
@@ -14,9 +16,13 @@ var (
 	seed    = time.Now().UnixNano()
 	source  = rand.NewSource(seed)
 	randGen = rand.New(source)
+
+	mailProviders = []string{"gmail", "yahoo", "outlook"}
 )
 
-const alphabet = "abcdefghijklmnopqrstuvwxyz"
+const (
+	alphabet = "abcdefghijklmnopqrstuvwxyz"
+)
 
 // Returns a random int64 between min and max.
 func RandomInt(min, max int64) int64 {
@@ -52,4 +58,31 @@ func RandCurrency() string {
 	currencies := []string{"EUR", "USD", "ILS"}
 	l := len(currencies)
 	return currencies[rand.Intn(l)]
+}
+
+func RandomUserName() string {
+	return RandomStr(6)
+}
+
+func RandomEmail() (email string) {
+	mailProvider := mailProviders[RandomInt(0, 2)]
+	email = RandomStr(6) + "@" + mailProvider + ".com"
+	return
+}
+
+func RandomFullName() string {
+	return RandomStr(6) + " " + RandomStr(6)
+}
+
+func RandomPassword() string {
+	return RandomStr(8)
+}
+
+func HashPassword(password string) (hash string) {
+	bcryptPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		panic(err)
+	}
+	hash = string(bcryptPassword)
+	return
 }
