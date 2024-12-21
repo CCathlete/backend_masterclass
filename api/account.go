@@ -107,12 +107,12 @@ func (server *Server) listAccounts(ctx *gin.Context) {
 		return
 	}
 
-	arg := sqlc.ListAccountParams{
+	arg := sqlc.ListAccountsParams{
 		Limit:  req.PageSize,
 		Offset: (req.PageID - 1) * req.PageSize,
 	}
 
-	accounts, err := server.store.ListAccount(ctx, arg)
+	accounts, err := server.store.ListAccounts(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

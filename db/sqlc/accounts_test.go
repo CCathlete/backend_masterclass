@@ -92,11 +92,11 @@ func TestListAccounts(t *testing.T) {
 		createRandomAccount(t)
 	}
 
-	arg := ListAccountParams{
+	arg := ListAccountsParams{
 		Limit:  5,
 		Offset: 5, // Skips 5 matches before returning values.
 	}
-	results, err := testQueries.ListAccount(context.Background(), arg)
+	results, err := testQueries.ListAccounts(context.Background(), arg)
 	require.NoError(t, err)
 
 	for _, result := range results {

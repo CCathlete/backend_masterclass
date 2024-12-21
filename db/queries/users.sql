@@ -24,12 +24,12 @@ limit
 -- name: UpdateUser :one
 update users
 set
-  username = $1
-  hashed_password = $2
-  full_name = $3
-  email = $4
+  username = $2,
+  hashed_password = $3,
+  full_name = $4,
+  email = $5
 where
-  id = $5
+  username = $1 -- The old username.
   returning *
 ;
 
@@ -39,7 +39,7 @@ select
 from
   users
 order by
-  id
+  username
 limit
   $1
 offset
@@ -50,5 +50,5 @@ offset
 -- name: DeleteUser :exec
 delete from users
 where
-  id = $1 
+  username = $1 
 ;

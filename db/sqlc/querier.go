@@ -12,9 +12,12 @@ type Querier interface {
 	CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error)
 	CreateEntry(ctx context.Context, arg CreateEntryParams) (Entry, error)
 	CreateTransfer(ctx context.Context, arg CreateTransferParams) (Transfer, error)
+	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteAccount(ctx context.Context, id int64) error
 	DeleteEntry(ctx context.Context, id int64) error
 	DeleteTransfer(ctx context.Context, id int64) error
+	// If there are no return values we use :exec instead of :one/many
+	DeleteUser(ctx context.Context, username string) error
 	GetAccount(ctx context.Context, id int64) (Account, error)
 	GetAccountEntries(ctx context.Context, accountID int64) ([]Entry, error)
 	GetAccountForUpdate(ctx context.Context, id int64) (Account, error)
@@ -22,9 +25,11 @@ type Querier interface {
 	GetTransfer(ctx context.Context, id int64) (Transfer, error)
 	GetTransfersFrom(ctx context.Context, fromAccountID int64) ([]Transfer, error)
 	GetTransfersTo(ctx context.Context, toAccountID int64) ([]Transfer, error)
-	ListAccount(ctx context.Context, arg ListAccountParams) ([]Account, error)
+	GetUser(ctx context.Context, username string) (User, error)
+	ListAccounts(ctx context.Context, arg ListAccountsParams) ([]Account, error)
 	ListEntries(ctx context.Context, arg ListEntriesParams) ([]Entry, error)
 	ListTransfers(ctx context.Context, arg ListTransfersParams) ([]Transfer, error)
+	ListUsers(ctx context.Context, arg ListUsersParams) ([]User, error)
 	// If there are no return values we use :exec instead of :one/many
 	UpdateAccount(ctx context.Context, arg UpdateAccountParams) (Account, error)
 	UpdateAccountBalance(ctx context.Context, arg UpdateAccountBalanceParams) (Account, error)
@@ -33,6 +38,7 @@ type Querier interface {
 	UpdateEntryByAccount(ctx context.Context, arg UpdateEntryByAccountParams) (Entry, error)
 	// If there are no return values we use :exec instead of :one/many
 	UpdateTransfer(ctx context.Context, arg UpdateTransferParams) (Transfer, error)
+	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 }
 
 var _ Querier = (*Queries)(nil)
