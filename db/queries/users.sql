@@ -1,8 +1,13 @@
 -- name: CreateUser :one
 insert into
-  users (owner, balance, currency)
-values ($1, $2, $3)
-  returning *
+  users (
+    username, 
+    hashed_password, 
+    full_name,
+    email
+    ) values (
+      $1, $2, $3, $4
+    ) returning *
 ;
 
 -- name: GetUser :one
@@ -11,21 +16,22 @@ select
 from
   users
 where
-  id = $1 
+  username = $1 
 limit
   1
 ;
 
--- name: GetUserForUpdate :one
-select
-  *
-from
-  users
+-- If there are no return values we use :exec instead of :one/many
+-- name: UpdateUser :one
+update users
+set
+  username = $1
+  hashed_password = $2
+  full_name = $3
+  email = $4
 where
-  id = $1 
-limit
-  1
-for no key update
+  id = $5
+  returning *
 ;
 
 -- name: ListUsers :many
@@ -39,25 +45,6 @@ limit
   $1
 offset
   $2
-;
-
--- If there are no return values we use :exec instead of :one/many
--- name: UpdateUser :one
-update users
-set
-  balance = $1 -- , another_param = $3
-where
-  id = $2
-  returning *
-;
-
--- name: UpdateUserBalance :one
-update users
-set
-  balance = balance + sqlc.arg(amount) -- , another_param = $3
-where
-  id = sqlc.arg(id)
-  returning *
 ;
 
 -- name: DeleteUser :exec
