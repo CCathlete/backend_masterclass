@@ -28,7 +28,7 @@ limit
 for no key update
 ;
 
--- name: ListAccount :many
+-- name: ListAccounts :many
 select
   *
 from
