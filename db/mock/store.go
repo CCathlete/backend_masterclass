@@ -352,18 +352,18 @@ func (mr *MockStoreMockRecorder) TransferTx(ctx, arg any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TransferTx", reflect.TypeOf((*MockStore)(nil).TransferTx), ctx, arg)
 }
 
-// TranslateSQLError mocks base method.
-func (m *MockStore) TranslateSQLError(err error) error {
+// TranslateError mocks base method.
+func (m *MockStore) TranslateError(err error) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TranslateSQLError", err)
+	ret := m.ctrl.Call(m, "TranslateError", err)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// TranslateSQLError indicates an expected call of TranslateSQLError.
-func (mr *MockStoreMockRecorder) TranslateSQLError(err any) *gomock.Call {
+// TranslateError indicates an expected call of TranslateError.
+func (mr *MockStoreMockRecorder) TranslateError(err any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TranslateSQLError", reflect.TypeOf((*MockStore)(nil).TranslateSQLError), err)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TranslateError", reflect.TypeOf((*MockStore)(nil).TranslateError), err)
 }
 
 // UpdateAccount mocks base method.

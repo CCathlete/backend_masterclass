@@ -30,7 +30,7 @@ func (server *Server) createAccount(ctx *gin.Context) {
 	account, err := server.store.CreateAccount(ctx, arg)
 	if err != nil {
 
-		trErr := server.store.TranslateSQLError(err)
+		trErr := server.store.TranslateError(err)
 		if errors.Is(trErr, errors.New("forbidden input")) {
 			ctx.JSON(http.StatusForbidden, errorResponse(err))
 			return

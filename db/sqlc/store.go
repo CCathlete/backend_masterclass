@@ -14,7 +14,7 @@ import (
 type Store interface {
 	Querier
 	TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error)
-	TranslateSQLError(err error) error
+	TranslateError(err error) error
 }
 
 // SQLStore provides all functions to execute SQL queries and transactions. => Implementation of storage service.
@@ -32,35 +32,8 @@ func NewStore(db *sql.DB) Store {
 	}
 }
 
-// This will be the last thing executed (first defer).
-// It gets the last error value of the function and the transaction
-// and commits or rolls back according to the error.
-func commitOrRollback(ctx context.Context, transaction *sql.Tx, err error) error {
-	txName := ctx.Value(TxKey)
-
-	switch err {
-	case nil:
-		// Committing the transaction to the DB.
-		// If we have multiple statements in the same transaction
-		// we need to commit after all are executed successfully!
-		err := transaction.Commit()
-		if err != nil {
-			log.Println(
-				"There was a problem with committing the transaction.")
-			return fmt.Errorf("commit err: %w", err)
-		}
-	default:
-		err = transaction.Rollback()
-		if err != nil {
-			log.Println(
-				"There was a problem with rolling the transaction back.")
-			return fmt.Errorf("rollback err: %w", err)
-		}
-		return fmt.Errorf("rollback performed: %w", err)
-	}
-
-	fmt.Println(txName, "Committed.")
-	return nil
+func (s *SQLStore) TranslateError(err error) error {
+	return translateSQLError(err)
 }
 
 // Executes a function (queries) within a database transaction.
@@ -166,6 +139,25 @@ func (store *SQLStore) TransferTx(ctx context.Context, arg TransferTxParams) (Tr
 	return result, nil
 }
 
+// translateSQLError translates a SQL error into a more readable error.
+func translateSQLError(err error) (trError error) {
+
+	trError = err
+	// pgconn.PgError is initialised to nil so we can't use it inside As.
+	// That's why we take its address, which still implements the error interface.
+	var pgxErr *pgconn.PgError
+	// Type assertion under the hood.
+	if errors.As(err, &pgxErr) {
+		if constraintViolations.Contains(pgxErr.Code) {
+			trError = ErrForbiddenInput
+		}
+	} else if connectionErrors.Contains(err.Error()) {
+		trError = ErrConnection
+	}
+
+	return
+}
+
 func addMoney(
 	ctx context.Context,
 	q *Queries,
@@ -194,21 +186,33 @@ func addMoney(
 	return
 }
 
-// TranslateSQLError translates a SQL error into a more readable error.
-func (s *SQLStore) TranslateSQLError(err error) (trError error) {
+// This will be the last thing executed (first defer).
+// It gets the last error value of the function and the transaction
+// and commits or rolls back according to the error.
+func commitOrRollback(ctx context.Context, transaction *sql.Tx, err error) error {
+	txName := ctx.Value(TxKey)
 
-	trError = err
-	// pgconn.PgError is initialised to nil so we can't use it inside As.
-	// That's why we take its address, which still implements the error interface.
-	var pgxErr *pgconn.PgError
-	// Type assertion under the hood.
-	if errors.As(err, &pgxErr) {
-		if constraintViolations.Contains(pgxErr.Code) {
-			trError = ErrForbiddenInput
+	switch err {
+	case nil:
+		// Committing the transaction to the DB.
+		// If we have multiple statements in the same transaction
+		// we need to commit after all are executed successfully!
+		err := transaction.Commit()
+		if err != nil {
+			log.Println(
+				"There was a problem with committing the transaction.")
+			return fmt.Errorf("commit err: %w", err)
 		}
-	} else if connectionErrors.Contains(err.Error()) {
-		trError = ErrConnection
+	default:
+		err = transaction.Rollback()
+		if err != nil {
+			log.Println(
+				"There was a problem with rolling the transaction back.")
+			return fmt.Errorf("rollback err: %w", err)
+		}
+		return fmt.Errorf("rollback performed: %w", err)
 	}
 
-	return
+	fmt.Println(txName, "Committed.")
+	return nil
 }

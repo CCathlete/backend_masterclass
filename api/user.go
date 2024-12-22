@@ -39,7 +39,7 @@ func (server *Server) createUser(ctx *gin.Context) {
 	user, err := server.store.CreateUser(ctx, arg)
 	if err != nil {
 
-		trErr := server.store.TranslateSQLError(err)
+		trErr := server.store.TranslateError(err)
 		if errors.Is(trErr, sqlc.ErrForbiddenInput) {
 			ctx.JSON(http.StatusForbidden, errorResponse(err))
 			return
