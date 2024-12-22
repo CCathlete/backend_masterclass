@@ -26,6 +26,7 @@ func NewServer(store sqlc.Store) (s *Server) {
 
 	routeAccount(s)
 	routeTransfer(s)
+	routeUser(s)
 
 	return
 }
@@ -60,4 +61,14 @@ func routeTransfer(s *Server) {
 	s.Router.GET("/transfers", s.listTransfers)
 	s.Router.GET("/transfers/:id", s.getTransfer)
 	s.Router.GET("/transfers/delete/:id", s.deleteTransfer)
+}
+
+func routeUser(s *Server) {
+	// POST requests:
+	s.Router.POST("/users", s.createUser)
+	s.Router.POST("/users/updusername", s.updateUser)
+	// GET Requests:
+	s.Router.GET("/users", s.listUsers)
+	s.Router.GET("/users/:id", s.getUser)
+	s.Router.GET("/users/delete/:id", s.deleteUser)
 }
