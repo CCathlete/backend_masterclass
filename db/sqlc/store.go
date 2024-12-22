@@ -1,16 +1,43 @@
 package sqlc
 
 import (
+	u "backend-masterclass/util"
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
+
+	"github.com/jackc/pgx/v5/pgconn"
+)
+
+const (
+	uniquViolation                                    = "23505"
+	foreignKeyViolation                               = "23503"
+	connection_exception                              = "08000"
+	connection_does_not_exist                         = "08003"
+	connection_failure                                = "08006"
+	sqlclient_unable_to_establish_sqlconnection       = "08001"
+	sqlserver_rejected_establishment_of_sqlconnection = "08004"
+	transaction_resolution_unknown                    = "08007"
+	protocol_violation                                = "08P01"
+)
+
+var (
+	constraintViolations = u.StringSlice{uniquViolation, foreignKeyViolation}
+	connectionErrors     = u.StringSlice{
+		connection_exception, connection_does_not_exist,
+		connection_failure, sqlclient_unable_to_establish_sqlconnection,
+		sqlserver_rejected_establishment_of_sqlconnection,
+		transaction_resolution_unknown, protocol_violation,
+	}
 )
 
 // Storage service.
 type Store interface {
 	Querier
 	TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error)
+	TranslateSQLError(err error) error
 }
 
 // SQLStore provides all functions to execute SQL queries and transactions. => Implementation of storage service.
@@ -31,7 +58,7 @@ func NewStore(db *sql.DB) Store {
 // This will be the last thing executed (first defer).
 // It gets the last error value of the function and the transaction
 // and commits or rolls back according to the error.
-func CommitOrRollback(ctx context.Context, transaction *sql.Tx, err error) error {
+func commitOrRollback(ctx context.Context, transaction *sql.Tx, err error) error {
 	txName := ctx.Value(TxKey)
 
 	switch err {
@@ -65,7 +92,7 @@ func (store *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) erro
 	if err != nil {
 		return fmt.Errorf("execTx: %w", err)
 	}
-	defer CommitOrRollback(ctx, tx, err)
+	defer commitOrRollback(ctx, tx, err)
 
 	// We create a *Qeries object with a transaction instead of regular db.
 	q := New(tx)
@@ -185,6 +212,25 @@ func addMoney(
 	})
 	if err != nil {
 		return
+	}
+
+	return
+}
+
+// TranslateSQLError translates a SQL error into a more readable error.
+func (s *SQLStore) TranslateSQLError(err error) (trError error) {
+
+	trError = err
+	// pgconn.PgError is initialised to nil so we can't use it inside As.
+	// That's why we take its address, which still implements the error interface.
+	var pgxErr *pgconn.PgError
+	// Type assertion under the hood.
+	if errors.As(err, &pgxErr) {
+		if constraintViolations.Contains(pgxErr.Code) {
+			trError = fmt.Errorf("forbidden input: %w", err)
+		}
+	} else if connectionErrors.Contains(err.Error()) {
+		trError = fmt.Errorf("connection error: %w", err)
 	}
 
 	return

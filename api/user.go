@@ -4,11 +4,11 @@ import (
 	"backend-masterclass/db/sqlc"
 	u "backend-masterclass/util"
 	"database/sql"
+	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type createUserRequest struct {
@@ -29,18 +29,23 @@ func (server *Server) createUser(ctx *gin.Context) {
 		Email:    req.Email,
 	}
 	hash, err := u.HashPassword(req.Password)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+	arg.HashedPassword = hash
 
 	user, err := server.store.CreateUser(ctx, arg)
 	if err != nil {
 
-		// Checkiing for specific violations for better error code return.
-		if pgxErr, ok := err.(*pgconn.PgError); ok {
-			switch pgxErr.Code {
-			// Unique violation, foreign key violation
-			case "23505", "23503":
-				ctx.JSON(http.StatusForbidden, errorResponse(err))
-				return
-			}
+		trErr := server.store.TranslateSQLError(err)
+		if errors.Is(trErr, errors.New("forbidden input")) {
+			ctx.JSON(http.StatusForbidden, errorResponse(err))
+			return
+
+		} else if errors.Is(trErr, errors.New("connection error")) {
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
 		}
 
 		// Any other error.
@@ -53,7 +58,7 @@ func (server *Server) createUser(ctx *gin.Context) {
 
 // ------------------------------------------------------------------- //
 type getUserRequest struct {
-	Username int64 `uri:"username" binding:"required,min=1"`
+	Username string `uri:"username" binding:"required"`
 }
 
 func (server *Server) getUser(ctx *gin.Context) {
