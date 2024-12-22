@@ -6,6 +6,13 @@
   "configurations": [
 
     {
+      "name": "Run debug/main.go",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/debug/main.go"
+    },
+    {
       "name": "Run cmd/main.go",
       "type": "go",
       "request": "launch",

@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	cfg := u.Must(u.LoadConfig("./")).(u.Config)
+	cfg := u.Must(u.LoadConfig("../")).(u.Config) // DEBUG
 	fmt.Println(cfg)
 	conn := u.Must(sqlc.ConnectToDB(cfg)).(*sql.DB)
 	defer conn.Close()
