@@ -18,7 +18,7 @@ import (
 )
 
 func randomAccount() sqlc.Account {
-	user := randomUser()
+	user, _ := randomUser()
 
 	return sqlc.Account{
 		ID:       u.RandomInt(1, 100),
