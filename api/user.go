@@ -12,9 +12,10 @@ import (
 )
 
 type createUserRequest struct {
-	FullName string `json:"full_name" binding:"required"`
-	Email    string `json:"email" binding:"required,valusernameemail"`
+	Username string `json:"username" binding:"required,alphanum"`
 	Password string `json:"password" binding:"required,min=6"`
+	FullName string `json:"full_name" binding:"required"`
+	Email    string `json:"email" binding:"required,email"`
 }
 
 func (server *Server) createUser(ctx *gin.Context) {
@@ -25,6 +26,7 @@ func (server *Server) createUser(ctx *gin.Context) {
 	}
 
 	arg := sqlc.CreateUserParams{
+		Username: req.Username,
 		FullName: req.FullName,
 		Email:    req.Email,
 	}
@@ -58,7 +60,7 @@ func (server *Server) createUser(ctx *gin.Context) {
 
 // ------------------------------------------------------------------- //
 type getUserRequest struct {
-	Username string `uri:"username" binding:"required"`
+	Username string `uri:"username" binding:"required,alphanum"`
 }
 
 func (server *Server) getUser(ctx *gin.Context) {
@@ -83,7 +85,7 @@ func (server *Server) getUser(ctx *gin.Context) {
 
 // ------------------------------------------------------------------- //
 type deleteUserRequest struct {
-	Username string `uri:"username" binding:"required"`
+	Username string `uri:"username" binding:"required,alphanum"`
 }
 
 func (server *Server) deleteUser(ctx *gin.Context) {
@@ -123,8 +125,8 @@ in the whole list, we need to know how many pages to skip, this is
 the offset which is the (num_of_pages_to_skip - 1) * page_size.
 */
 type listUsersRequest struct {
-	PageUsername int32 `form:"page_username" binding:"required,min=1"`
-	PageSize     int32 `form:"page_size" binding:"required,min=5,max=10"`
+	PageID   int32 `form:"page_id" binding:"required,min=1"`
+	PageSize int32 `form:"page_size" binding:"required,min=5,max=10"`
 }
 
 func (server *Server) listUsers(ctx *gin.Context) {
@@ -136,7 +138,7 @@ func (server *Server) listUsers(ctx *gin.Context) {
 
 	arg := sqlc.ListUsersParams{
 		Limit:  req.PageSize,
-		Offset: (req.PageUsername - 1) * req.PageSize,
+		Offset: (req.PageID - 1) * req.PageSize,
 	}
 
 	users, err := server.store.ListUsers(ctx, arg)
@@ -151,7 +153,7 @@ func (server *Server) listUsers(ctx *gin.Context) {
 // ------------------------------------------------------------------- //
 type updateUserRequest struct {
 	PasswordHash string `json:"password_hash" binding:"required"`
-	Username     string `json:"username" binding:"required"`
+	Username     string `json:"username" binding:"required,alphanum"`
 }
 
 func (server *Server) updateUser(ctx *gin.Context) {
