@@ -83,7 +83,7 @@ func (server *Server) getUser(ctx *gin.Context) {
 
 // ------------------------------------------------------------------- //
 type deleteUserRequest struct {
-	Username int64 `uri:"username" binding:"required,min=1"`
+	Username string `uri:"username" binding:"required"`
 }
 
 func (server *Server) deleteUser(ctx *gin.Context) {
