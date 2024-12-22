@@ -71,6 +71,6 @@ func routeUser(s *Server) {
 	s.Router.POST("/users/updusername", s.updateUser)
 	// GET Requests:
 	s.Router.GET("/users", s.listUsers)
-	s.Router.GET("/users/:id", s.getUser)
-	s.Router.GET("/users/delete/:id", s.deleteUser)
+	s.Router.GET("/users/:username", s.getUser)
+	s.Router.GET("/users/delete/:username", s.deleteUser)
 }

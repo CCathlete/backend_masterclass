@@ -12,6 +12,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 	"time"
 
@@ -79,10 +80,10 @@ func TestGetUserAPI(t *testing.T) {
 		{
 			// In this case we are simulating a bad request. The user ID is invalid( should be >=1 ). The query should not be activated.
 			name:     "bad request",
-			username: "##00",
+			username: "0##00",
 			buildStubs: func(store *mockdb.MockStore) {
 
-				// What this means is I expect the GetUser method with any context and any user ID as the query id to be called 0 times.
+				// What this means is I expect the GetUser method with any context and any username as the query is to be called 0 times.
 				store.EXPECT().GetUser(gomock.Any(), gomock.Any()).
 					Times(0)
 
@@ -110,7 +111,8 @@ func TestGetUserAPI(t *testing.T) {
 			server := NewServer(store)
 			recorder := httptest.NewRecorder()
 
-			url := fmt.Sprintf("/users/%s", tc.username)
+			// We need take into account the bad request so we need to escape special characters.
+			url := fmt.Sprintf("/users/%s", url.QueryEscape(tc.username))
 			request, err := http.NewRequest(http.MethodGet, url, nil)
 			require.NoError(t, err)
 
