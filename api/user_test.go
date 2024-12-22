@@ -52,7 +52,7 @@ func TestGetUserAPI(t *testing.T) {
 
 				store.EXPECT().GetUser(gomock.Any(), gomock.Eq(user.Username)).
 					Times(1).
-					Return(sqlc.User{}, sql.ErrNoRows)
+					Return(sqlc.User{}, sqlc.ErrRecordNotFound)
 
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -79,7 +79,7 @@ func TestGetUserAPI(t *testing.T) {
 		{
 			// In this case we are simulating a bad request. The user ID is invalid( should be >=1 ). The query should not be activated.
 			name:     "bad request",
-			username: "",
+			username: "##00",
 			buildStubs: func(store *mockdb.MockStore) {
 
 				// What this means is I expect the GetUser method with any context and any user ID as the query id to be called 0 times.
@@ -148,5 +148,12 @@ func requireBodyMatchUser(t *testing.T,
 	var gotUser sqlc.User
 	err = json.Unmarshal(data, &gotUser)
 	require.NoError(t, err)
-	require.Equal(t, user, gotUser)
+	require.Equal(t, user.Username, gotUser.Username)
+	require.Equal(t, user.FullName, gotUser.FullName)
+	require.Equal(t, user.HashedPassword, gotUser.HashedPassword)
+	require.Equal(t, user.FullName, gotUser.FullName)
+	// There might be a short delay from creation of the random user
+	// to its storage in the DB and we don't this to fail the test.
+	require.WithinDuration(t, user.PasswordChangedAt, gotUser.PasswordChangedAt, time.Second)
+	require.WithinDuration(t, user.CreatedAt, gotUser.CreatedAt, time.Second)
 }

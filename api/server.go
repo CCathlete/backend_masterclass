@@ -11,7 +11,9 @@ import (
 // Serves all HTTP requests for our banking service.
 
 type Server struct {
-	store  sqlc.Store
+	store sqlc.Store
+	// Responsible for creating the context for each route.
+	// It will automatically send the context to the handler functions.
 	Router *gin.Engine
 }
 
