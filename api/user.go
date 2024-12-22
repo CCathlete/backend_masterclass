@@ -3,7 +3,6 @@ package api
 import (
 	"backend-masterclass/db/sqlc"
 	u "backend-masterclass/util"
-	"database/sql"
 	"errors"
 	"fmt"
 	"net/http"
@@ -41,11 +40,11 @@ func (server *Server) createUser(ctx *gin.Context) {
 	if err != nil {
 
 		trErr := server.store.TranslateSQLError(err)
-		if errors.Is(trErr, errors.New("forbidden input")) {
+		if errors.Is(trErr, sqlc.ErrForbiddenInput) {
 			ctx.JSON(http.StatusForbidden, errorResponse(err))
 			return
 
-		} else if errors.Is(trErr, errors.New("connection error")) {
+		} else if errors.Is(trErr, sqlc.ErrConnection) {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
 			return
 		}
@@ -72,7 +71,7 @@ func (server *Server) getUser(ctx *gin.Context) {
 
 	user, err := server.store.GetUser(ctx, req.Username)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, sqlc.ErrRecordNotFound) {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
 			return
 		}
@@ -97,7 +96,7 @@ func (server *Server) deleteUser(ctx *gin.Context) {
 
 	user, err := server.store.GetUser(ctx, req.Username)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, sqlc.ErrRecordNotFound) {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
 			return
 		}
@@ -105,7 +104,7 @@ func (server *Server) deleteUser(ctx *gin.Context) {
 
 	err = server.store.DeleteUser(ctx, req.Username)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, sqlc.ErrRecordNotFound) {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
 			return
 		}
@@ -170,7 +169,7 @@ func (server *Server) updateUser(ctx *gin.Context) {
 
 	userBefore, err := server.store.GetUser(ctx, req.Username)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, sqlc.ErrRecordNotFound) {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
 			return
 		}
