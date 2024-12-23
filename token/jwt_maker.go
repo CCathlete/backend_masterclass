@@ -1,6 +1,7 @@
 package token
 
 import (
+	"errors"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -33,22 +34,38 @@ func (maker *JWTMaker) VerifyToken(signedTokenString string,
 
 	// The keyFunc is used to validate the signing method of the token and to return the key used to sign the token.
 	keyFunc := func(token *jwt.Token) (any, error) {
-		_, ok := token.Method.(*jwt.SigningMethodHMAC)
-		if !ok {
+
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, ErrInvalidToken
 		}
+
 		return []byte(maker.secretKey), nil
 	}
 
-	jwtToken, err := jwt.ParseWithClaims(signedTokenString,
-		&Payload{}, keyFunc)
+	// Converting the token string into a jwt object.
+	// We need ot provide a pointer to an empty jwt.Claims implementation because the jwt parser will fill it with the payload data.
+	jwtToken, err :=
+		jwt.ParseWithClaims(signedTokenString, &Payload{}, keyFunc)
+
+	// In case of a invalid token we want to know whether it is because it is invalid or because it has expired.
 	if err != nil {
-		return nil, ErrInvalidToken
+		var validationErr *jwt.ValidationError
+
+		if errors.As(err, &validationErr) {
+			// During the parsing, the validationError.Inner field will contain my error coming from my keyFunc call during the parsing.
+			if errors.Is(validationErr.Inner, ErrExpiredToken) {
+				return nil, ErrExpiredToken
+			}
+			return nil, ErrInvalidToken
+		}
 	}
+
+	// jwt.ParseWithClaims returns a jwt.Claims interface, so we need to type assert it to our Payload struct.
 	payload, ok := jwtToken.Claims.(*Payload)
 	if !ok {
 		return nil, ErrInvalidToken
 	}
+
 	return payload, nil
 }
 
