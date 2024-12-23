@@ -54,7 +54,7 @@ func (server *Server) createUser(ctx *gin.Context) {
 			return
 
 		} else if errors.Is(trErr, sqlc.ErrConnection) {
-			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return
 		}
 

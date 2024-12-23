@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"reflect"
 	"testing"
 	"time"
 
@@ -19,10 +20,44 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
+// Implements gomock.Matcher so that we're able to an argument with a password hash to createUserParams coming from the request body, containing a password.
+type eqCreateUserParamsMatcher struct {
+	arg      sqlc.CreateUserParams
+	password string
+}
+
+// We need to use bcrypt in order to check for a match between a password and a hash.
+// x is the input we want to compare to a test argument which is created in the test stub.
+func (e eqCreateUserParamsMatcher) Matches(x any) bool {
+	arg, ok := x.(sqlc.CreateUserParams)
+	if !ok {
+		return false
+	}
+
+	err := u.CheckPassword(e.password, arg.HashedPassword)
+	if err != nil {
+		return false
+	}
+
+	// After checking the password, we add the hash to the argument and now we can compare the argument and the parameter x which comes from the request body.
+	e.arg.HashedPassword = arg.HashedPassword
+	return reflect.DeepEqual(e.arg, arg)
+}
+
+func (e eqCreateUserParamsMatcher) String() string {
+	return fmt.Sprintf("matches arg %v and password %v", e.arg, e.password)
+}
+
+// Takes in the expected value (arg) and a password and returns a matcher object for gomock to use.
+func EqCreateUserParams(arg sqlc.CreateUserParams, password string,
+) gomock.Matcher {
+	return eqCreateUserParamsMatcher{arg, password}
+}
+
 func TestCreateUserAPI(t *testing.T) {
 	user, password := randomUser()
 	// For cases where we want to replace some of the credentials.
-	newUser, newPassword := randomUser()
+	otherUser, otherPassword := randomUser()
 
 	testCases := []struct {
 		name string
@@ -48,7 +83,8 @@ func TestCreateUserAPI(t *testing.T) {
 
 				// The request body will be sent through server.router abd here we require the request body to be the same as what appears in gomock.Eq().
 				store.EXPECT().CreateUser(gomock.Any(),
-					gomock.Eq(arg)).
+					// password is defined in the beginning of this test function.
+					EqCreateUserParams(arg, password)).
 					Times(1).
 					Return(user, nil)
 
@@ -71,13 +107,13 @@ func TestCreateUserAPI(t *testing.T) {
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				arg := sqlc.CreateUserParams{
-					Username:       user.Username,
-					HashedPassword: user.HashedPassword,
-					FullName:       user.FullName,
-					Email:          user.Email,
+					Username: user.Username,
+					FullName: user.FullName,
+					Email:    user.Email,
 				}
 
-				store.EXPECT().CreateUser(gomock.Any(), gomock.Eq(arg)).
+				store.EXPECT().CreateUser(gomock.Any(),
+					EqCreateUserParams(arg, password)).
 					Times(1).
 					Return(sqlc.User{}, sqlc.ErrConnection)
 
@@ -96,20 +132,20 @@ func TestCreateUserAPI(t *testing.T) {
 			// This is what will be put into the request body.
 			body: createUserRequest{
 				Username: user.Username,
-				Password: newPassword,
-				FullName: newUser.FullName,
-				Email:    newUser.Email,
+				Password: otherPassword,
+				FullName: otherUser.FullName,
+				Email:    otherUser.Email,
 			},
 			buildStubs: func(store *mockdb.MockStore) {
-				// This is what we set our stub to expect and return.
+				// This is what we set our stub to expect.
 				arg := sqlc.CreateUserParams{
-					Username:       user.Username,
-					HashedPassword: newUser.HashedPassword,
-					FullName:       newUser.FullName,
-					Email:          newUser.Email,
+					Username: user.Username,
+					FullName: otherUser.FullName,
+					Email:    otherUser.Email,
 				}
 
-				store.EXPECT().CreateUser(gomock.Any(), gomock.Eq(arg)).
+				store.EXPECT().CreateUser(gomock.Any(),
+					EqCreateUserParams(arg, otherPassword)).
 					Times(1).
 					Return(sqlc.User{}, sqlc.ErrForbiddenInput)
 
