@@ -14,7 +14,7 @@ const (
 	authorisationHeaderKey  = "authorization"
 	authorisationPayloadKey = "authorization_payload"
 
-	authorisationTypeBearer = "bearer"
+	authorisationTypeBearer = "Bearer"
 )
 
 func authMiddleware(tokenMaker token.Maker) gin.HandlerFunc {
@@ -37,7 +37,8 @@ func authMiddleware(tokenMaker token.Maker) gin.HandlerFunc {
 			return
 		}
 
-		// We want to extract the authorisatino type from the auth header.
+		// We want to extract the authorisation type from the auth header.
+		// Authorisation type = token type.
 		authorisationType := strings.ToLower(fields[0])
 		if authorisationType != authorisationTypeBearer {
 			err := errors.New("unsupported authorization type")
