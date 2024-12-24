@@ -75,6 +75,7 @@ func routeTransfer(s *Server) {
 func routeUser(s *Server) {
 	// POST requests:
 	s.router.POST("/users", s.createUser)
+	s.router.POST("/users/login", s.loginUser)
 	s.router.POST("/users/updusername", s.updateUser)
 	// GET Requests:
 	s.router.GET("/users", s.listUsers)
