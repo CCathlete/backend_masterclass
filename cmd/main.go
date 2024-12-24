@@ -20,5 +20,10 @@ func main() {
 		cfg.TokenKey)).(token.Maker)
 	server := api.NewServer(store, cfg, pasetoTokenMaker)
 
+	// --------Just to see that it's quick to replace----------------
+	// jwtTokenMaker := u.Must(token.NewJWTMaker(
+	// 	cfg.TokenKey)).(token.Maker)
+	// server := api.NewServer(store, cfg, jwtTokenMaker)
+	// ------------------------------------------------------------
 	u.Must(nil, server.Start(cfg.ServerAddress))
 }
