@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/stretchr/testify/require"
 )
 
@@ -37,7 +38,8 @@ func TestExpiredJWTToken(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, maker)
 
-	token, err := maker.CreateToken(u.RandomUsername(), -time.Minute)
+	duration := -time.Minute
+	token, err := maker.CreateToken(u.RandomUsername(), duration)
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 
@@ -47,6 +49,31 @@ func TestExpiredJWTToken(t *testing.T) {
 	require.Nil(t, payload)
 }
 
+// Testing for use of alg "none".
+// We want to make sure that we get an ErrInvalidToken error when we get a token that was signed with the none alg.
 func TestInvalidJWTTokenAlgNone(t *testing.T) {
-	// TODO: Add test.
+
+	// ---------This part imitates maker.CreateToken()------------
+	payload, err := Newpayload(u.RandomUsername(), time.Minute)
+	require.NoError(t, err)
+
+	// Creating a token object with our payload, putting in the none Alg using the signing method none variable.
+	jwtToken := jwt.NewWithClaims(jwt.SigningMethodNone, payload)
+	// We need to use a special key to be able to sign the token with alg "none".
+	junkKey := jwt.UnsafeAllowNoneSignatureType
+	signedTokenString, err := jwtToken.SignedString(junkKey)
+	require.NoError(t, err)
+
+	// ---------This part imitates maker.VerifyToken()------------
+
+	// Creating a new JWTMaker with a our "real" key.
+	myRealKey := u.RandomStr(32)
+	maker, err := NewJWTMaker(myRealKey)
+	require.NoError(t, err)
+
+	// Now for the big part, we want to test our verification method, showing that it won't verify a token signed with a different key even if the signing algorithm was none.
+	payload, err = maker.VerifyToken(signedTokenString)
+	require.Error(t, err)
+	require.EqualError(t, err, ErrInvalidToken.Error())
+	require.Nil(t, payload)
 }
