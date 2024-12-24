@@ -3,6 +3,7 @@ package main
 import (
 	"backend-masterclass/api"
 	"backend-masterclass/db/sqlc"
+	"backend-masterclass/token"
 	u "backend-masterclass/util"
 	"database/sql"
 	"fmt"
@@ -15,7 +16,8 @@ func main() {
 	defer conn.Close()
 
 	store := sqlc.NewStore(conn)
-	server := api.NewServer(store)
+	pasetoTokenMaker := u.Must(token.NewPasetoMaker(cfg.TokenKey)).(token.Maker)
+	server := api.NewServer(store, cfg, pasetoTokenMaker)
 
 	u.Must(nil, server.Start(cfg.ServerAddress))
 }

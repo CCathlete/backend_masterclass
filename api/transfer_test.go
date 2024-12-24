@@ -3,6 +3,7 @@ package api
 import (
 	mockdb "backend-masterclass/db/mock"
 	"backend-masterclass/db/sqlc"
+	"backend-masterclass/token"
 	u "backend-masterclass/util"
 	"bytes"
 	"database/sql"
@@ -11,6 +12,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
@@ -282,9 +284,15 @@ func TestTransferAPI(t *testing.T) {
 			defer ctrl.Finish()
 
 			store := mockdb.NewMockStore(ctrl)
+			tokenMaker, err := token.NewPasetoMaker(u.RandomStr(32))
+			require.NoError(t, err)
+			config := u.Config{
+				AccessTokenDuration: time.Minute,
+			}
+
 			tc.buildStubs(store)
 
-			server := NewServer(store)
+			server := NewServer(store, config, tokenMaker)
 			recorder := httptest.NewRecorder()
 
 			data, err := json.Marshal(tc.body)
@@ -294,7 +302,7 @@ func TestTransferAPI(t *testing.T) {
 			request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(data)) // We create a new request with the data we created.
 			require.NoError(t, err)
 
-			server.Router.ServeHTTP(recorder, request)
+			server.router.ServeHTTP(recorder, request)
 			tc.checkResponse(t, recorder)
 		})
 	}

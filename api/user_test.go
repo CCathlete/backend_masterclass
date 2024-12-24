@@ -3,6 +3,7 @@ package api
 import (
 	mockdb "backend-masterclass/db/mock"
 	"backend-masterclass/db/sqlc"
+	"backend-masterclass/token"
 	u "backend-masterclass/util"
 	"bytes"
 	"database/sql"
@@ -230,16 +231,23 @@ func TestCreateUserAPI(t *testing.T) {
 			defer ctrl.Finish()
 
 			store := mockdb.NewMockStore(ctrl)
+			tokenMaker, err := token.NewPasetoMaker(u.RandomStr(32))
+			require.NoError(t, err)
+
+			config := u.Config{
+				AccessTokenDuration: time.Minute,
+			}
+
 			// build stubs.
 			tc.buildStubs(store)
 
 			// Starting test server and sending request.
-			server := NewServer(store)
+			server := NewServer(store, config, tokenMaker)
 			recorder := httptest.NewRecorder()
 
 			// We create a json encoder from the reqBody buffer and marshal tc.body into it.
 			reqBody := new(bytes.Buffer)
-			err := json.NewEncoder(reqBody).Encode(tc.body)
+			err = json.NewEncoder(reqBody).Encode(tc.body)
 			require.NoError(t, err)
 
 			url := "/users"
@@ -248,7 +256,7 @@ func TestCreateUserAPI(t *testing.T) {
 
 			// We use the inner ServeHTTP method and not Gin's Run method
 			// because we want to use our recorder as a response writer.
-			server.Router.ServeHTTP(recorder, request)
+			server.router.ServeHTTP(recorder, request)
 			tc.checkResponse(t, recorder)
 
 		})
@@ -339,11 +347,17 @@ func TestGetUserAPI(t *testing.T) {
 			defer ctrl.Finish()
 
 			store := mockdb.NewMockStore(ctrl)
+			tokenMaker, err := token.NewPasetoMaker(u.RandomStr(32))
+			require.NoError(t, err)
+			config := u.Config{
+				AccessTokenDuration: time.Minute,
+			}
+
 			// build stubs.
 			tc.buildStubs(store)
 
 			// Starting test server and sending request.
-			server := NewServer(store)
+			server := NewServer(store, config, tokenMaker)
 			recorder := httptest.NewRecorder()
 
 			// We need take into account the bad request so we need to escape special characters.
@@ -353,7 +367,7 @@ func TestGetUserAPI(t *testing.T) {
 
 			// We use the inner ServeHTTP method and not Gin's Run method
 			// because we want to use our recorder as a response writer.
-			server.Router.ServeHTTP(recorder, request)
+			server.router.ServeHTTP(recorder, request)
 			tc.checkResponse(t, recorder)
 
 		})
