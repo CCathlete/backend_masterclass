@@ -1,9 +1,8 @@
 package api
 
 import (
+	mockdb "backend-masterclass/db/mock"
 	"backend-masterclass/token"
-	"bytes"
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -65,22 +64,31 @@ func TestAuthMiddleware(t *testing.T) {
 
 		t.Run(tc.name, func(t *testing.T) {
 
-			server := newTestServer(t, nil)
-			recorder := httptest.NewRecorder()
+			// ------------Setting up main engine resources-----------------
+			// We don't need a db in this test group.
+			var testStore *mockdb.MockStore = nil
+			// Token maker is set up in this function.
+			server := newTestServer(t, testStore)
 
-			data := gin.H{
-				"username":  "user",
-				"password":  "password",
-				"full_name": "name",
-				"email":     "email",
+			// ------------Setting up fake routing-----------------
+			testHandlerFunc := func(ctx *gin.Context) {
+				ctx.JSON(http.StatusOK, gin.H{})
 			}
 
-			jsonBody, err := json.Marshal(data)
+			authPath := "/auth"
+
+			server.router.GET(
+				authPath,
+				authMiddleware(server.tokenMaker),
+				testHandlerFunc,
+			)
+
+			// ----------Setting up fake request & response writer-------------
+			recorder := httptest.NewRecorder()
+			request, err := http.NewRequest(http.MethodGet, authPath, nil)
 			require.NoError(t, err)
 
-			request, err := http.NewRequest(http.MethodPost, "/users", bytes.NewReader(jsonBody))
-			require.NoError(t, err)
-
+			// ------------------Running the test------------------------------
 			tc.setupAuth(t, request, server.tokenMaker)
 			server.router.ServeHTTP(recorder, request)
 			tc.checkResponse(t, recorder)
