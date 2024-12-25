@@ -36,6 +36,17 @@ type Querier interface {
 	// If there are no return values we use :exec instead of :one/many
 	UpdateEntry(ctx context.Context, arg UpdateEntryParams) (Entry, error)
 	UpdateEntryByAccount(ctx context.Context, arg UpdateEntryByAccountParams) (Entry, error)
+	// select
+	//   *
+	// from
+	//   transfers
+	// order by
+	//   id
+	// limit
+	//   $1
+	// offset
+	//   $2
+	// ;
 	// If there are no return values we use :exec instead of :one/many
 	UpdateTransfer(ctx context.Context, arg UpdateTransferParams) (Transfer, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)

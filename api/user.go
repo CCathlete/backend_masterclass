@@ -2,6 +2,7 @@ package api
 
 import (
 	"backend-masterclass/db/sqlc"
+	"backend-masterclass/token"
 	u "backend-masterclass/util"
 	"errors"
 	"fmt"
@@ -261,4 +262,22 @@ func (server *Server) loginUser(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, rsp)
+}
+
+func isLoggedIn(ctx *gin.Context, username string) (ok bool) {
+	payload, foundInCtx := ctx.Get(authorisationPayloadKey)
+	if !foundInCtx {
+		return false
+	}
+
+	payloadVal, ok := payload.(*token.Payload)
+	if !ok {
+		// ok = false.
+		return
+	}
+
+	// If payload extraction was successful we can set our return value.
+	ok = payloadVal.Username == username
+
+	return
 }

@@ -156,25 +156,30 @@ func (q *Queries) GetTransfersTo(ctx context.Context, toAccountID int64) ([]Tran
 }
 
 const listTransfers = `-- name: ListTransfers :many
-select
-  id, from_account_id, to_account_id, amount, currency, created_at
-from
-  transfers
-order by
-  id
-limit
-  $1
-offset
+select 
+  t.id, t.from_account_id, t.to_account_id, t.amount, t.currency, t.created_at
+from 
+  transfers t
+join 
+  accounts a on t.from_account_id = a.id
+where 
+  a.owner = $1
+order by 
+  t.id
+limit 
   $2
+offset 
+  $3
 `
 
 type ListTransfersParams struct {
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	Owner  string `json:"owner"`
+	Limit  int32  `json:"limit"`
+	Offset int32  `json:"offset"`
 }
 
 func (q *Queries) ListTransfers(ctx context.Context, arg ListTransfersParams) ([]Transfer, error) {
-	rows, err := q.db.QueryContext(ctx, listTransfers, arg.Limit, arg.Offset)
+	rows, err := q.db.QueryContext(ctx, listTransfers, arg.Owner, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -204,6 +209,7 @@ func (q *Queries) ListTransfers(ctx context.Context, arg ListTransfersParams) ([
 }
 
 const updateTransfer = `-- name: UpdateTransfer :one
+
 update transfers
 set
   amount = $1 -- , another_param = $3
@@ -217,6 +223,27 @@ type UpdateTransferParams struct {
 	ID     int64 `json:"id"`
 }
 
+// select
+//
+//	*
+//
+// from
+//
+//	transfers
+//
+// order by
+//
+//	id
+//
+// limit
+//
+//	$1
+//
+// offset
+//
+//	$2
+//
+// ;
 // If there are no return values we use :exec instead of :one/many
 func (q *Queries) UpdateTransfer(ctx context.Context, arg UpdateTransferParams) (Transfer, error) {
 	row := q.db.QueryRowContext(ctx, updateTransfer, arg.Amount, arg.ID)

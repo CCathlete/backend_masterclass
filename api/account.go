@@ -2,6 +2,7 @@ package api
 
 import (
 	"backend-masterclass/db/sqlc"
+	"backend-masterclass/token"
 	"errors"
 	"fmt"
 	"net/http"
@@ -10,7 +11,6 @@ import (
 )
 
 type createAccountRequest struct {
-	Owner    string `json:"owner" binding:"required"`
 	Currency string `json:"currency" binding:"required,validcurrency"`
 }
 
@@ -21,8 +21,12 @@ func (server *Server) createAccount(ctx *gin.Context) {
 		return
 	}
 
+	// The middleware extracts this from the token in the auth header
+	// and puts it in the context.
+	authPayload := ctx.MustGet(authorisationPayloadKey).(*token.Payload)
 	arg := sqlc.CreateAccountParams{
-		Owner:    req.Owner,
+		// The owner is the username from the authorisation payload.
+		Owner:    authPayload.Username,
 		Currency: req.Currency,
 		Balance:  0,
 	}
@@ -70,6 +74,15 @@ func (server *Server) getAccount(ctx *gin.Context) {
 		return
 	}
 
+	// Making sure that the logged in user is allowed to see the account.
+	authPayload := ctx.MustGet(authorisationPayloadKey).(*token.Payload)
+
+	if account.Owner != authPayload.Username {
+		err := fmt.Errorf("account does not belong to the authenticated user")
+		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+		return
+	}
+
 	ctx.JSON(http.StatusOK, account)
 }
 
@@ -97,6 +110,15 @@ func (server *Server) getAccountForUpdate(ctx *gin.Context) {
 		return
 	}
 
+	// Making sure that the logged in user is allowed to see the account.
+	authPayload := ctx.MustGet(authorisationPayloadKey).(*token.Payload)
+
+	if account.Owner != authPayload.Username {
+		err := fmt.Errorf("account does not belong to the authenticated user")
+		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+		return
+	}
+
 	ctx.JSON(http.StatusOK, account)
 }
 
@@ -119,7 +141,11 @@ func (server *Server) listAccounts(ctx *gin.Context) {
 		return
 	}
 
+	// Making sure that the logged in user is allowed to see the account.
+	authPayload := ctx.MustGet(authorisationPayloadKey).(*token.Payload)
+
 	arg := sqlc.ListAccountsParams{
+		Owner:  authPayload.Username,
 		Limit:  req.PageSize,
 		Offset: (req.PageID - 1) * req.PageSize,
 	}

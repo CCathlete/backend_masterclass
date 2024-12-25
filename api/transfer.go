@@ -33,6 +33,7 @@ func (server *Server) createTransfer(ctx *gin.Context) {
 		Currency:      req.Currency,
 	}
 
+	// -----------This includes checking user permissions.----------------
 	if !server.validTransferParams(ctx, arg) {
 		ctx.JSON(http.StatusBadRequest, errorResponse(fmt.Errorf("invalid transfer parameters")))
 		return
@@ -133,6 +134,13 @@ func (server *Server) deleteTransfer(ctx *gin.Context) {
 		}
 	}
 
+	// ---------A user can delete only their own transfers.----------
+	if _, ok := server.validAccount(ctx, transfer.FromAccountID, transfer.Currency, false); !ok {
+		err := fmt.Errorf("user unuthorised to delete this transfer")
+		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+		return
+	}
+
 	err = server.store.DeleteTransfer(ctx, req.ID)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -173,6 +181,13 @@ func (server *Server) updateTransfer(ctx *gin.Context) {
 		}
 	}
 
+	// ---------A user can update only their own transfers.----------
+	if _, ok := server.validAccount(ctx, transferBefore.FromAccountID, transferBefore.Currency, false); !ok {
+		err := fmt.Errorf("user unuthorised to update this transfer")
+		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+		return
+	}
+
 	transferAfter, err := server.store.UpdateTransfer(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -191,40 +206,69 @@ func (server *Server) updateTransfer(ctx *gin.Context) {
 func (s *Server) validTransferParams(
 	ctx *gin.Context,
 	arg sqlc.TransferTxParams,
-) bool {
+) (ok bool) {
 
+	// ------------Checking general validity of parameters----------------
 	if arg.FromAccountID == arg.ToAccountID {
 		log.Println("FromAccountID and ToAccountID must be different.")
-		return false
+		return
 	}
 	if arg.Amount <= 0 {
 		log.Println("Amount must be greater than 0.")
-		return false
+		return
 	}
 	if arg.FromAccountID < 1 || arg.ToAccountID < 1 {
 		log.Println("Account IDs must be at least 1.")
-		return false
+		return
 	}
 
-	fromAccount, err := s.store.GetAccount(ctx, arg.FromAccountID)
+	// ----------------Checking that fromAccount is valid-----------------
+	_, ok = s.validAccount(ctx, arg.FromAccountID, arg.Currency, false)
+	if !ok {
+		log.Printf("FromAccountID (%d) is not valid.\n", arg.FromAccountID)
+		// ok = false.
+		return
+	}
+
+	// -------------Checking that toAccount exists & checking currencies------------------------------------------------------------
+	_, ok = s.validAccount(ctx, arg.ToAccountID, arg.Currency, true)
+	if !ok {
+		log.Printf("ToAccountID (%d) is not valid.\n", arg.ToAccountID)
+		// ok = false.
+		return
+	}
+
+	return
+}
+
+func (s *Server) validAccount(ctx *gin.Context, accountID int64,
+	txCurrency string, isToAccount bool,
+) (account sqlc.Account, ok bool) {
+
+	account, err := s.store.GetAccount(ctx, accountID)
 	if err != nil {
-		log.Printf("FromAccountID (%d) does not exist.\n", arg.FromAccountID)
-		return false
+		if err == sqlc.ErrRecordNotFound {
+			err = fmt.Errorf("account validation error (not found)")
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		}
+		err = fmt.Errorf("account validation error (internal)")
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
 	}
-	if fromAccount.Currency != arg.Currency {
-		log.Printf("FromAccountID (%d) currency is different from the transfer currency.\n", arg.FromAccountID)
-		return false
-	}
-
-	toAccount, err := s.store.GetAccount(ctx, arg.ToAccountID)
-	if err != nil {
-		log.Printf("ToAccountID (%d) does not exist.\n", arg.ToAccountID)
-		return false
-	}
-	if toAccount.Currency != arg.Currency {
-		log.Printf("ToAccountID (%d) currency is different from the transfer currency.\n", arg.ToAccountID)
-		return false
+	if account.Currency != txCurrency {
+		log.Printf("Account ID (%d) currency (%s) is different from the transfer's currency (%s).\n", accountID, account.Currency, txCurrency)
+		return
 	}
 
-	return true
+	// Making sure that that the logged user is the account owner or that the account is toAccount so user validation can be skipped.
+	ok = isLoggedIn(ctx, account.Owner) || isToAccount
+	if !ok {
+		err = fmt.Errorf("account validation error (unauthorized)")
+		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+		return
+	}
+
+	// ok = true.
+	return
 }

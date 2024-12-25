@@ -33,12 +33,14 @@ select
   *
 from
   accounts
+where 
+  owner = $1
 order by
   id
 limit
-  $1
-offset
   $2
+offset
+  $3
 ;
 
 -- If there are no return values we use :exec instead of :one/many
