@@ -49,17 +49,6 @@ limit
 offset 
   $3
 ;
--- select
---   *
--- from
---   transfers
--- order by
---   id
--- limit
---   $1
--- offset
---   $2
--- ;
 
 -- If there are no return values we use :exec instead of :one/many
 -- name: UpdateTransfer :one

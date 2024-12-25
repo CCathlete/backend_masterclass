@@ -209,7 +209,6 @@ func (q *Queries) ListTransfers(ctx context.Context, arg ListTransfersParams) ([
 }
 
 const updateTransfer = `-- name: UpdateTransfer :one
-
 update transfers
 set
   amount = $1 -- , another_param = $3
@@ -223,27 +222,6 @@ type UpdateTransferParams struct {
 	ID     int64 `json:"id"`
 }
 
-// select
-//
-//	*
-//
-// from
-//
-//	transfers
-//
-// order by
-//
-//	id
-//
-// limit
-//
-//	$1
-//
-// offset
-//
-//	$2
-//
-// ;
 // If there are no return values we use :exec instead of :one/many
 func (q *Queries) UpdateTransfer(ctx context.Context, arg UpdateTransferParams) (Transfer, error) {
 	row := q.db.QueryRowContext(ctx, updateTransfer, arg.Amount, arg.ID)

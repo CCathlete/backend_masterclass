@@ -2,6 +2,7 @@ package api
 
 import (
 	"backend-masterclass/db/sqlc"
+	"backend-masterclass/token"
 	"database/sql"
 	"fmt"
 	"log"
@@ -93,7 +94,13 @@ func (server *Server) listTransfers(ctx *gin.Context) {
 		return
 	}
 
+	// ---------A user can list only their own transfers.----------
+	currentUser :=
+		ctx.MustGet(authorisationPayloadKey).(*token.Payload).Username
+
 	arg := sqlc.ListTransfersParams{
+		// We'll list transfers from all accounts the current user owns.
+		Owner:  currentUser,
 		Limit:  req.PageSize,
 		Offset: (req.PageID - 1) * req.PageSize,
 	}
