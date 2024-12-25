@@ -17,6 +17,7 @@ type Server struct {
 	// Responsible for creating the context for each route.
 	// It will automatically send the context to the handler functions.
 	router     *gin.Engine
+	authRouter gin.IRoutes
 	tokenMaker token.Maker
 	config     u.Config
 }
@@ -33,9 +34,13 @@ func NewServer(store sqlc.Store, config u.Config, maker token.Maker,
 		validationEngine.RegisterValidation("validcurrency", validCurrency)
 	}
 
+	// We wrap our router with a middleware for all routes in the "all routes group".
+	s.authRouter = s.router.Group("/").Use(authMiddleware(s.tokenMaker))
+	// ------------------No Auth Middleware--------------------
+	routeUser(s)
+	// ------------------With Auth Middleware------------------
 	routeAccount(s)
 	routeTransfer(s)
-	routeUser(s)
 
 	return
 }
@@ -64,21 +69,21 @@ func routeAccount(s *Server) {
 
 func routeTransfer(s *Server) {
 	// POST requests:
-	s.router.POST("/transfers", s.createTransfer)
-	s.router.POST("/transfers/updamount", s.updateTransfer)
+	s.authRouter.POST("/transfers", s.createTransfer)
+	s.authRouter.POST("/transfers/updamount", s.updateTransfer)
 	// GET Requests:
-	s.router.GET("/transfers", s.listTransfers)
-	s.router.GET("/transfers/:id", s.getTransfer)
-	s.router.GET("/transfers/delete/:id", s.deleteTransfer)
+	s.authRouter.GET("/transfers", s.listTransfers)
+	s.authRouter.GET("/transfers/:id", s.getTransfer)
+	s.authRouter.GET("/transfers/delete/:id", s.deleteTransfer)
 }
 
 func routeUser(s *Server) {
 	// POST requests:
-	s.router.POST("/users", s.createUser)
-	s.router.POST("/users/login", s.loginUser)
-	s.router.POST("/users/updusername", s.updateUser)
+	s.authRouter.POST("/users", s.createUser)
+	s.authRouter.POST("/users/login", s.loginUser)
+	s.authRouter.POST("/users/updusername", s.updateUser)
 	// GET Requests:
-	s.router.GET("/users", s.listUsers)
-	s.router.GET("/users/:username", s.getUser)
-	s.router.GET("/users/delete/:username", s.deleteUser)
+	s.authRouter.GET("/users", s.listUsers)
+	s.authRouter.GET("/users/:username", s.getUser)
+	s.authRouter.GET("/users/delete/:username", s.deleteUser)
 }

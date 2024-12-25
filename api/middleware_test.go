@@ -119,7 +119,22 @@ func TestAuthMiddleware(t *testing.T) {
 		},
 		{
 			name: "Expired Token",
-			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+			setupAuth: func(
+				t *testing.T,
+				request *http.Request,
+				tokenMaker token.Maker,
+			) {
+				// We'll use a negative duration to simulate an expired token.
+				duration := -time.Minute
+
+				addAuthorisation(
+					t,
+					request,
+					tokenMaker,
+					authorisationTypeBearer,
+					"user",
+					duration,
+				)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusUnauthorized, recorder.Code)
