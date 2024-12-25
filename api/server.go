@@ -57,20 +57,21 @@ func errorResponse(err error) (resBody gin.H) {
 
 func routeAccount(s *Server) {
 	// POST requests:
-	s.router.POST("/accounts", s.createAccount)
-	s.router.POST("/accounts/updbalance", s.updateAccountBalance)
-	s.router.POST("/accounts/setbalance", s.updateAccount)
+	s.authRouter.POST("/accounts", s.createAccount)
+	s.authRouter.POST("/accounts/updbalance", s.updateAccountBalance)
+	s.authRouter.POST("/accounts/setbalance", s.updateAccount)
 	// GET Requests:
-	s.router.GET("/accounts/", s.listAccounts)
-	s.router.GET("/accounts/:id", s.getAccount)
-	s.router.GET("/accounts/forupdate/:id", s.getAccountForUpdate)
-	s.router.GET("/accounts/delete/:id", s.deleteAccount)
+	s.authRouter.GET("/accounts/", s.listAccounts)
+	s.authRouter.GET("/accounts/:id", s.getAccount)
+	s.authRouter.GET("/accounts/forupdate/:id", s.getAccountForUpdate)
+	s.authRouter.GET("/accounts/delete/:id", s.deleteAccount)
 }
 
 func routeTransfer(s *Server) {
 	// POST requests:
 	s.authRouter.POST("/transfers", s.createTransfer)
 	s.authRouter.POST("/transfers/updamount", s.updateTransfer)
+	s.authRouter.POST("/transfers/fromaccount", s.getTransfersFromAccount)
 	// GET Requests:
 	s.authRouter.GET("/transfers", s.listTransfers)
 	s.authRouter.GET("/transfers/:id", s.getTransfer)
@@ -79,11 +80,11 @@ func routeTransfer(s *Server) {
 
 func routeUser(s *Server) {
 	// POST requests:
-	s.authRouter.POST("/users", s.createUser)
-	s.authRouter.POST("/users/login", s.loginUser)
-	s.authRouter.POST("/users/updusername", s.updateUser)
+	s.router.POST("/users", s.createUser)
+	s.router.POST("/users/login", s.loginUser)
+	s.router.POST("/users/updusername", s.updateUser)
 	// GET Requests:
-	s.authRouter.GET("/users", s.listUsers)
-	s.authRouter.GET("/users/:username", s.getUser)
-	s.authRouter.GET("/users/delete/:username", s.deleteUser)
+	s.router.GET("/users", s.listUsers)
+	s.router.GET("/users/:username", s.getUser)
+	s.router.GET("/users/delete/:username", s.deleteUser)
 }

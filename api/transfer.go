@@ -107,6 +107,10 @@ func (server *Server) listTransfers(ctx *gin.Context) {
 
 	transfers, err := server.store.ListTransfers(ctx, arg)
 	if err != nil {
+		if err == sqlc.ErrRecordNotFound {
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
@@ -115,7 +119,38 @@ func (server *Server) listTransfers(ctx *gin.Context) {
 }
 
 // ------------------------------------------------------------------- //
-// TODO: Add a function to get all transfers from a specific account.
+type getTransfersFromAccountRequest struct {
+	AccountID int64  `json:"from_account_id" binding:"required"`
+	Currency  string `json:"currency" binding:"required,validcurrency"`
+}
+
+func (server *Server) getTransfersFromAccount(ctx *gin.Context) {
+	var req getTransfersFromAccountRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	// -----------------Validating account ownership.---------------------
+	if _, ok :=
+		server.validAccount(ctx, req.AccountID, req.Currency, false); !ok {
+		return
+	}
+
+	// -----------------Getting the transfers.----------------------------
+	transfers, err := server.store.GetTransfersFrom(ctx, req.AccountID)
+	if err != nil {
+		if err == sqlc.ErrRecordNotFound {
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, transfers)
+}
+
 // ------------------------------------------------------------------- //
 
 // ------------------------------------------------------------------- //
