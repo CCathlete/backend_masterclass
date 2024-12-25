@@ -6,7 +6,6 @@ import (
 	"backend-masterclass/token"
 	u "backend-masterclass/util"
 	"bytes"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -275,6 +274,9 @@ func TestGetAccountAPI(t *testing.T) {
 					Times(1).
 					Return(sqlc.Account{}, sqlc.ErrRecordNotFound)
 
+				// TODO: Uncomment after translating error in server.GetAccount.
+				// store.EXPECT().TranslateError(gomock.Any()).Times(1).
+				// 	Return(sqlc.ErrRecordNotFound)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 
@@ -299,8 +301,11 @@ func TestGetAccountAPI(t *testing.T) {
 
 				store.EXPECT().GetAccount(gomock.Any(), gomock.Eq(account.ID)).
 					Times(1).
-					Return(sqlc.Account{}, sql.ErrConnDone)
+					Return(sqlc.Account{}, sqlc.ErrConnection)
 
+				// TODO: Uncomment after translating error in server.GetAccount.
+				// store.EXPECT().TranslateError(gomock.Any()).Times(1).
+				// 	Return(sqlc.ErrConnection)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 
@@ -431,6 +436,114 @@ func TestListAccountsAPI(t *testing.T) {
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusOK, recorder.Code)
+			},
+		},
+		{
+			name: "no authorisation",
+			query: Query{
+				pageID:   1,
+				pageSize: n,
+			},
+			setupAuth: func(
+				t *testing.T,
+				request *http.Request,
+				tokenMaker token.Maker,
+				authorizationType string,
+				username string,
+				duration time.Duration,
+			) {
+				// We don't provide an authorization header.
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				// This is supposed to fail at the server level.
+				store.EXPECT().
+					ListAccounts(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusUnauthorized, recorder.Code)
+			},
+		},
+		{
+			name: "internal error",
+			query: Query{
+				pageID:   1,
+				pageSize: n,
+			},
+			setupAuth: func(
+				t *testing.T,
+				request *http.Request,
+				tokenMaker token.Maker,
+				authorizationType string,
+				username string,
+				duration time.Duration,
+			) {
+				addAuthorisation(t, request, tokenMaker, authorisationTypeBearer, user.Username, duration)
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				// This is supposed to fail at the db level.
+				store.EXPECT().
+					ListAccounts(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return([]sqlc.Account{}, sqlc.ErrConnection)
+
+				store.EXPECT().TranslateError(gomock.Any()).Times(1).
+					Return(sqlc.ErrConnection)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+			},
+		},
+		{
+			name: "invalid page id",
+			query: Query{
+				pageID:   -1,
+				pageSize: n,
+			},
+			setupAuth: func(
+				t *testing.T,
+				request *http.Request,
+				tokenMaker token.Maker,
+				authorizationType string,
+				username string,
+				duration time.Duration,
+			) {
+				addAuthorisation(t, request, tokenMaker, authorisationTypeBearer, user.Username, duration)
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				// This is supposed to fail at the server level.
+				store.EXPECT().
+					ListAccounts(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusBadRequest, recorder.Code)
+			},
+		},
+		{
+			name: "invalid page size",
+			query: Query{
+				pageID:   1,
+				pageSize: 100000000,
+			},
+			setupAuth: func(
+				t *testing.T,
+				request *http.Request,
+				tokenMaker token.Maker,
+				authorizationType string,
+				username string,
+				duration time.Duration,
+			) {
+				addAuthorisation(t, request, tokenMaker, authorisationTypeBearer, user.Username, duration)
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				// This is supposed to fail at the server level.
+				store.EXPECT().
+					ListAccounts(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusBadRequest, recorder.Code)
 			},
 		},
 	}

@@ -34,6 +34,7 @@ func (server *Server) createAccount(ctx *gin.Context) {
 	account, err := server.store.CreateAccount(ctx, arg)
 	if err != nil {
 
+		// TODO: Put constant errors instead or errors.New(...).
 		trErr := server.store.TranslateError(err)
 		if errors.Is(trErr, errors.New("forbidden input")) {
 			ctx.JSON(http.StatusForbidden, errorResponse(err))
@@ -65,6 +66,7 @@ func (server *Server) getAccount(ctx *gin.Context) {
 	}
 
 	account, err := server.store.GetAccount(ctx, req.ID)
+	// TODO: Translate errors.
 	if err != nil {
 		if errors.Is(err, sqlc.ErrRecordNotFound) {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
