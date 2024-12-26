@@ -193,6 +193,7 @@ func TestCreateUserAPI(t *testing.T) {
 				store.EXPECT().CreateUser(gomock.Any(), gomock.Any()).
 					Times(0)
 
+				// ------No TranslateError since it's server level.-------------
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 
@@ -214,6 +215,7 @@ func TestCreateUserAPI(t *testing.T) {
 				store.EXPECT().CreateUser(gomock.Any(), gomock.Any()).
 					Times(0)
 
+				// ------No TranslateError since it's server level.-------------
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 
@@ -298,6 +300,9 @@ func TestGetUserAPI(t *testing.T) {
 					Times(1).
 					Return(sqlc.User{}, sqlc.ErrRecordNotFound)
 
+				store.EXPECT().TranslateError(gomock.Any()).Times(1).
+					Return(sqlc.ErrRecordNotFound, true)
+
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 
@@ -314,6 +319,9 @@ func TestGetUserAPI(t *testing.T) {
 					Times(1).
 					Return(sqlc.User{}, sql.ErrConnDone)
 
+				store.EXPECT().TranslateError(gomock.Any()).Times(1).
+					Return(sqlc.ErrConnection, false)
+
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 
@@ -329,6 +337,8 @@ func TestGetUserAPI(t *testing.T) {
 				// What this means is I expect the GetUser method with any context and any username as the query is to be called 0 times.
 				store.EXPECT().GetUser(gomock.Any(), gomock.Any()).
 					Times(0)
+
+				// -------No TranslateError since it's server level.------------
 
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
