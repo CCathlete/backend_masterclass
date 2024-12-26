@@ -171,6 +171,9 @@ func (server *Server) deleteAccount(ctx *gin.Context) {
 		return
 	}
 
+	// Making sure that the logged in user is allowed to delete the account.
+	_ = ctx.MustGet(authorisationPayloadKey).(*token.Payload)
+
 	account, err := server.Store.GetAccount(ctx, req.ID)
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
 		handleError(server, ctx, trErr)
@@ -198,6 +201,9 @@ func (server *Server) updateAccountBalance(ctx *gin.Context) {
 		return
 	}
 
+	// Making sure that the logged in user is allowed to update the account.
+	_ = ctx.MustGet(authorisationPayloadKey).(*token.Payload)
+
 	arg := sqlc.UpdateAccountBalanceParams{
 		Amount: req.Amount,
 		ID:     req.ID,
@@ -222,37 +228,40 @@ func (server *Server) updateAccountBalance(ctx *gin.Context) {
 }
 
 // ------------------------------------------------------------------- //
-type updateAccountRequest struct {
-	Balance int64 `json:"balance" binding:"required"`
-	ID      int64 `json:"id" binding:"required"`
-}
+// type updateAccountRequest struct {
+// 	Balance int64 `json:"balance" binding:"required"`
+// 	ID      int64 `json:"id" binding:"required"`
+// }
 
-func (server *Server) updateAccount(ctx *gin.Context) {
-	var req updateAccountRequest
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, errorResponse(err))
-		return
-	}
+// func (server *Server) updateAccount(ctx *gin.Context) {
+// 	var req updateAccountRequest
+// 	if err := ctx.ShouldBindJSON(&req); err != nil {
+// 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+// 		return
+// 	}
 
-	arg := sqlc.UpdateAccountParams{
-		Balance: req.Balance,
-		ID:      req.ID,
-	}
+// 	// Making sure that the logged in user is allowed to update the account.
+// 	_ = ctx.MustGet(authorisationPayloadKey).(*token.Payload)
 
-	accountBefore, err := server.Store.GetAccount(ctx, req.ID)
-	if trErr, notNil := server.Store.TranslateError(err); notNil {
-		handleError(server, ctx, trErr)
-	}
+// 	arg := sqlc.UpdateAccountParams{
+// 		Balance: req.Balance,
+// 		ID:      req.ID,
+// 	}
 
-	accountAfter, err := server.Store.UpdateAccount(ctx, arg)
-	if trErr, notNil := server.Store.TranslateError(err); notNil {
-		handleError(server, ctx, trErr)
-	}
+// 	accountBefore, err := server.Store.GetAccount(ctx, req.ID)
+// 	if trErr, notNil := server.Store.TranslateError(err); notNil {
+// 		handleError(server, ctx, trErr)
+// 	}
 
-	output := struct{ Before, After sqlc.Account }{
-		Before: accountBefore,
-		After:  accountAfter,
-	}
+// 	accountAfter, err := server.Store.UpdateAccount(ctx, arg)
+// 	if trErr, notNil := server.Store.TranslateError(err); notNil {
+// 		handleError(server, ctx, trErr)
+// 	}
 
-	ctx.JSON(http.StatusOK, output)
-}
+// 	output := struct{ Before, After sqlc.Account }{
+// 		Before: accountBefore,
+// 		After:  accountAfter,
+// 	}
+
+// 	ctx.JSON(http.StatusOK, output)
+// }
