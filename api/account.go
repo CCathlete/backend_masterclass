@@ -109,6 +109,7 @@ func (server *Server) getAccountForUpdate(ctx *gin.Context) {
 	account, err := server.Store.GetAccountForUpdate(ctx, req.ID)
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
 		handleError(server, ctx, trErr)
+		return
 	}
 
 	// Making sure that the logged in user is allowed to see the account.
@@ -154,6 +155,7 @@ func (server *Server) listAccounts(ctx *gin.Context) {
 	accounts, err := server.Store.ListAccounts(ctx, arg)
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
 		handleError(server, ctx, trErr)
+		return
 	}
 
 	ctx.JSON(http.StatusOK, accounts)
@@ -172,16 +174,15 @@ func (server *Server) deleteAccount(ctx *gin.Context) {
 	}
 
 	// Making sure that the logged in user is allowed to delete the account.
-	_ = ctx.MustGet(authorisationPayloadKey).(*token.Payload)
-
-	account, err := server.Store.GetAccount(ctx, req.ID)
-	if trErr, notNil := server.Store.TranslateError(err); notNil {
-		handleError(server, ctx, trErr)
+	account, ok := server.validAccount(ctx, req.ID)
+	if !ok {
+		return
 	}
 
-	err = server.Store.DeleteAccount(ctx, req.ID)
+	err := server.Store.DeleteAccount(ctx, req.ID)
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
 		handleError(server, ctx, trErr)
+		return
 	}
 
 	ctx.JSON(http.StatusOK, fmt.Sprintln("Account ", account,
@@ -202,21 +203,21 @@ func (server *Server) updateAccountBalance(ctx *gin.Context) {
 	}
 
 	// Making sure that the logged in user is allowed to update the account.
-	_ = ctx.MustGet(authorisationPayloadKey).(*token.Payload)
+	accountBefore, ok := server.validAccount(ctx, req.ID)
+	if !ok {
+		// Response handling is done inside the validation if not valid.
+		return
+	}
 
 	arg := sqlc.UpdateAccountBalanceParams{
 		Amount: req.Amount,
 		ID:     req.ID,
 	}
 
-	accountBefore, err := server.Store.GetAccount(ctx, req.ID)
-	if trErr, notNil := server.Store.TranslateError(err); notNil {
-		handleError(server, ctx, trErr)
-	}
-
 	accountAfter, err := server.Store.UpdateAccountBalance(ctx, arg)
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
 		handleError(server, ctx, trErr)
+		return
 	}
 
 	output := struct{ Before, After sqlc.Account }{
@@ -251,11 +252,13 @@ func (server *Server) updateAccountBalance(ctx *gin.Context) {
 // 	accountBefore, err := server.Store.GetAccount(ctx, req.ID)
 // 	if trErr, notNil := server.Store.TranslateError(err); notNil {
 // 		handleError(server, ctx, trErr)
+// return
 // 	}
 
 // 	accountAfter, err := server.Store.UpdateAccount(ctx, arg)
 // 	if trErr, notNil := server.Store.TranslateError(err); notNil {
 // 		handleError(server, ctx, trErr)
+// return
 // 	}
 
 // 	output := struct{ Before, After sqlc.Account }{

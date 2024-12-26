@@ -43,6 +43,7 @@ func (server *Server) createTransfer(ctx *gin.Context) {
 	transfer, err := server.Store.TransferTx(ctx, arg)
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
 		handleError(server, ctx, trErr)
+		return
 	}
 
 	ctx.JSON(http.StatusOK, transfer)
@@ -63,6 +64,7 @@ func (server *Server) getTransfer(ctx *gin.Context) {
 	transfer, err := server.Store.GetTransfer(ctx, req.ID)
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
 		handleError(server, ctx, trErr)
+		return
 	}
 
 	ctx.JSON(http.StatusOK, transfer)
@@ -126,7 +128,7 @@ func (server *Server) getTransfersFromAccount(ctx *gin.Context) {
 
 	// -----------------Validating account ownership.---------------------
 	if _, ok :=
-		server.validAccount(ctx, req.AccountID, req.Currency, false); !ok {
+		server.validAccountTransfer(ctx, req.AccountID, req.Currency, false); !ok {
 		return
 	}
 
@@ -170,7 +172,7 @@ func (server *Server) deleteTransfer(ctx *gin.Context) {
 	}
 
 	// ---------A user can delete only their own transfers.----------
-	if _, ok := server.validAccount(ctx, transfer.FromAccountID, transfer.Currency, false); !ok {
+	if _, ok := server.validAccountTransfer(ctx, transfer.FromAccountID, transfer.Currency, false); !ok {
 		err := fmt.Errorf("user unuthorised to delete this transfer")
 		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
 		return
@@ -217,7 +219,7 @@ func (server *Server) updateTransfer(ctx *gin.Context) {
 	}
 
 	// ---------A user can update only their own transfers.----------
-	if _, ok := server.validAccount(ctx, transferBefore.FromAccountID, transferBefore.Currency, false); !ok {
+	if _, ok := server.validAccountTransfer(ctx, transferBefore.FromAccountID, transferBefore.Currency, false); !ok {
 		err := fmt.Errorf("user unuthorised to update this transfer")
 		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
 		return

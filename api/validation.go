@@ -29,15 +29,37 @@ func isLoggedIn(ctx *gin.Context, username string) (ok bool) {
 }
 
 func (s *Server) validAccount(ctx *gin.Context, accountID int64,
-	txCurrency string, isToAccount bool,
 ) (account sqlc.Account, ok bool) {
 
 	account, err := s.Store.GetAccount(ctx, accountID)
 	if trErr, notNil := s.Store.TranslateError(err); notNil {
 		handleError(s, ctx, trErr)
+		return
 	}
-	if account.Currency != txCurrency {
-		log.Printf("Account ID (%d) currency (%s) is different from the transfer's currency (%s).\n", accountID, account.Currency, txCurrency)
+
+	// Making sure that that the logged in user is the account owner.
+	ok = isLoggedIn(ctx, account.Owner)
+	if !ok {
+		err = fmt.Errorf("account validation error (unauthorized)")
+		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+		return
+	}
+
+	// ok = true.
+	return
+}
+
+func (s *Server) validAccountTransfer(ctx *gin.Context, accountID int64,
+	transferCurrency string, isToAccount bool,
+) (account sqlc.Account, ok bool) {
+
+	account, err := s.Store.GetAccount(ctx, accountID)
+	if trErr, notNil := s.Store.TranslateError(err); notNil {
+		handleError(s, ctx, trErr)
+		return
+	}
+	if account.Currency != transferCurrency {
+		log.Printf("Account ID (%d) currency (%s) is different from the transfer's currency (%s).\n", accountID, account.Currency, transferCurrency)
 		return
 	}
 
@@ -73,7 +95,7 @@ func (s *Server) validTransferParams(
 	}
 
 	// ----------------Checking that fromAccount is valid-----------------
-	_, ok = s.validAccount(ctx, arg.FromAccountID, arg.Currency, false)
+	_, ok = s.validAccountTransfer(ctx, arg.FromAccountID, arg.Currency, false)
 	if !ok {
 		log.Printf("FromAccountID (%d) is not valid.\n", arg.FromAccountID)
 		// ok = false.
@@ -81,7 +103,7 @@ func (s *Server) validTransferParams(
 	}
 
 	// -------------Checking that toAccount exists & checking currencies------------------------------------------------------------
-	_, ok = s.validAccount(ctx, arg.ToAccountID, arg.Currency, true)
+	_, ok = s.validAccountTransfer(ctx, arg.ToAccountID, arg.Currency, true)
 	if !ok {
 		log.Printf("ToAccountID (%d) is not valid.\n", arg.ToAccountID)
 		// ok = false.
