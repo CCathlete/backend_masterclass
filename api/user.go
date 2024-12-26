@@ -4,7 +4,6 @@ import (
 	"backend-masterclass/db/sqlc"
 	"backend-masterclass/token"
 	u "backend-masterclass/util"
-	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -57,21 +56,8 @@ func (server *Server) createUser(ctx *gin.Context) {
 	arg.HashedPassword = hash
 
 	user, err := server.Store.CreateUser(ctx, arg)
-	if err != nil {
-
-		trErr, _ := server.Store.TranslateError(err)
-		if errors.Is(trErr, sqlc.ErrForbiddenInput) {
-			ctx.JSON(http.StatusForbidden, errorResponse(err))
-			return
-
-		} else if errors.Is(trErr, sqlc.ErrConnection) {
-			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-			return
-		}
-
-		// Any other error.
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
+	if trErr, notNil := server.Store.TranslateError(err); notNil {
+		handleError(server, ctx, trErr)
 	}
 
 	res := newUserResponse(user)
@@ -91,13 +77,8 @@ func (server *Server) getUser(ctx *gin.Context) {
 	}
 
 	user, err := server.Store.GetUser(ctx, req.Username)
-	if err != nil {
-		if errors.Is(err, sqlc.ErrRecordNotFound) {
-			ctx.JSON(http.StatusNotFound, errorResponse(err))
-			return
-		}
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
+	if trErr, notNil := server.Store.TranslateError(err); notNil {
+		handleError(server, ctx, trErr)
 	}
 
 	ctx.JSON(http.StatusOK, user)
@@ -116,21 +97,13 @@ func (server *Server) deleteUser(ctx *gin.Context) {
 	}
 
 	user, err := server.Store.GetUser(ctx, req.Username)
-	if err != nil {
-		if errors.Is(err, sqlc.ErrRecordNotFound) {
-			ctx.JSON(http.StatusNotFound, errorResponse(err))
-			return
-		}
+	if trErr, notNil := server.Store.TranslateError(err); notNil {
+		handleError(server, ctx, trErr)
 	}
 
 	err = server.Store.DeleteUser(ctx, req.Username)
-	if err != nil {
-		if errors.Is(err, sqlc.ErrRecordNotFound) {
-			ctx.JSON(http.StatusNotFound, errorResponse(err))
-			return
-		}
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
+	if trErr, notNil := server.Store.TranslateError(err); notNil {
+		handleError(server, ctx, trErr)
 	}
 
 	ctx.JSON(http.StatusOK, fmt.Sprintln("User ", user,
@@ -162,9 +135,8 @@ func (server *Server) listUsers(ctx *gin.Context) {
 	}
 
 	users, err := server.Store.ListUsers(ctx, arg)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
+	if trErr, notNil := server.Store.TranslateError(err); notNil {
+		handleError(server, ctx, trErr)
 	}
 
 	ctx.JSON(http.StatusOK, users)
@@ -189,17 +161,13 @@ func (server *Server) updateUser(ctx *gin.Context) {
 	}
 
 	userBefore, err := server.Store.GetUser(ctx, req.Username)
-	if err != nil {
-		if errors.Is(err, sqlc.ErrRecordNotFound) {
-			ctx.JSON(http.StatusNotFound, errorResponse(err))
-			return
-		}
+	if trErr, notNil := server.Store.TranslateError(err); notNil {
+		handleError(server, ctx, trErr)
 	}
 
 	userAfter, err := server.Store.UpdateUser(ctx, arg)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
+	if trErr, notNil := server.Store.TranslateError(err); notNil {
+		handleError(server, ctx, trErr)
 	}
 
 	output := struct{ Before, After sqlc.User }{
@@ -231,13 +199,8 @@ func (server *Server) loginUser(ctx *gin.Context) {
 	}
 
 	user, err := server.Store.GetUser(ctx, req.Username)
-	if err != nil {
-		if errors.Is(err, sqlc.ErrRecordNotFound) {
-			ctx.JSON(http.StatusNotFound, errorResponse(err))
-			return
-		}
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
+	if trErr, notNil := server.Store.TranslateError(err); notNil {
+		handleError(server, ctx, trErr)
 	}
 
 	err = u.CheckPassword(req.Password, user.HashedPassword)
