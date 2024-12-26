@@ -274,9 +274,8 @@ func TestGetAccountAPI(t *testing.T) {
 					Times(1).
 					Return(sqlc.Account{}, sqlc.ErrRecordNotFound)
 
-				// TODO: Uncomment after translating error in server.GetAccount.
-				// store.EXPECT().TranslateError(gomock.Any()).Times(1).
-				// 	Return(sqlc.ErrRecordNotFound)
+				store.EXPECT().TranslateError(gomock.Any()).Times(1).
+					Return(sqlc.ErrRecordNotFound)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 

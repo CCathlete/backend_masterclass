@@ -24,12 +24,13 @@ var (
 	// Group of possible violation error codes.
 	constraintViolations = u.StringSlice{uniquViolation, foreignKeyViolation}
 
-	// Group of possible connection error code.
+	// Group of possible connection error codes/ messages.
 	connectionErrors = u.StringSlice{
 		connectionException, connectionDoesNotExist,
 		connectionFailure, sqlclientUnableToEstablishSqlConnection,
 		sqlserverRejectedEstablishmentOfSqlConnection,
 		transactionResolutionUnknown, protocolViolation,
+		sql.ErrConnDone.Error(),
 	}
 
 	// When the package is imported, these variables get an address.
