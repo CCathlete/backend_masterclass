@@ -61,7 +61,7 @@ func routeAccount(s *Server) {
 	s.authRouter.POST("/accounts/updbalance", s.updateAccountBalance)
 	s.authRouter.POST("/accounts/setbalance", s.updateAccount)
 	// GET Requests:
-	s.authRouter.GET("/accounts/", s.listAccounts)
+	s.authRouter.GET("/accounts", s.listAccounts)
 	s.authRouter.GET("/accounts/:id", s.getAccount)
 	s.authRouter.GET("/accounts/forupdate/:id", s.getAccountForUpdate)
 	s.authRouter.GET("/accounts/delete/:id", s.deleteAccount)
