@@ -19,6 +19,8 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
+// TODO: Add authorisation to every test case and call it in the loop.
+
 func TestTransferAPI(t *testing.T) {
 	amount := int64(10)
 
