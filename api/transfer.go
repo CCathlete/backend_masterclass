@@ -3,7 +3,6 @@ package api
 import (
 	"backend-masterclass/db/sqlc"
 	"backend-masterclass/token"
-	"database/sql"
 	"fmt"
 	"net/http"
 
@@ -67,6 +66,11 @@ func (server *Server) getTransfer(ctx *gin.Context) {
 		return
 	}
 
+	// -----------Validating transfer ownership.-----------------------
+	if _, ok := server.validAccountTransfer(ctx, transfer.FromAccountID, transfer.Currency, false); !ok {
+		return
+	}
+
 	ctx.JSON(http.StatusOK, transfer)
 }
 
@@ -101,12 +105,8 @@ func (server *Server) listTransfers(ctx *gin.Context) {
 	}
 
 	transfers, err := server.Store.ListTransfers(ctx, arg)
-	if err != nil {
-		if err == sqlc.ErrRecordNotFound {
-			ctx.JSON(http.StatusNotFound, errorResponse(err))
-			return
-		}
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+	if trErr, notNil := server.Store.TranslateError(err); notNil {
+		handleError(server, ctx, trErr)
 		return
 	}
 
@@ -134,12 +134,8 @@ func (server *Server) getTransfersFromAccount(ctx *gin.Context) {
 
 	// -----------------Getting the transfers.----------------------------
 	transfers, err := server.Store.GetTransfersFrom(ctx, req.AccountID)
-	if err != nil {
-		if err == sqlc.ErrRecordNotFound {
-			ctx.JSON(http.StatusNotFound, errorResponse(err))
-			return
-		}
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+	if trErr, notNil := server.Store.TranslateError(err); notNil {
+		handleError(server, ctx, trErr)
 		return
 	}
 
@@ -164,13 +160,12 @@ func (server *Server) deleteTransfer(ctx *gin.Context) {
 	}
 
 	transfer, err := server.Store.GetTransfer(ctx, req.ID)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			ctx.JSON(http.StatusNotFound, errorResponse(err))
-			return
-		}
+	if trErr, notNil := server.Store.TranslateError(err); notNil {
+		handleError(server, ctx, trErr)
+		return
 	}
 
+	// TODO: This is not true, change this when we add RBAC.
 	// ---------A user can delete only their own transfers.----------
 	if _, ok := server.validAccountTransfer(ctx, transfer.FromAccountID, transfer.Currency, false); !ok {
 		err := fmt.Errorf("user unuthorised to delete this transfer")
@@ -179,12 +174,8 @@ func (server *Server) deleteTransfer(ctx *gin.Context) {
 	}
 
 	err = server.Store.DeleteTransfer(ctx, req.ID)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			ctx.JSON(http.StatusNotFound, errorResponse(err))
-			return
-		}
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+	if trErr, notNil := server.Store.TranslateError(err); notNil {
+		handleError(server, ctx, trErr)
 		return
 	}
 
@@ -211,11 +202,9 @@ func (server *Server) updateTransfer(ctx *gin.Context) {
 	}
 
 	transferBefore, err := server.Store.GetTransfer(ctx, req.ID)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			ctx.JSON(http.StatusNotFound, errorResponse(err))
-			return
-		}
+	if trErr, notNil := server.Store.TranslateError(err); notNil {
+		handleError(server, ctx, trErr)
+		return
 	}
 
 	// ---------A user can update only their own transfers.----------
@@ -226,8 +215,8 @@ func (server *Server) updateTransfer(ctx *gin.Context) {
 	}
 
 	transferAfter, err := server.Store.UpdateTransfer(ctx, arg)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+	if trErr, notNil := server.Store.TranslateError(err); notNil {
+		handleError(server, ctx, trErr)
 		return
 	}
 
