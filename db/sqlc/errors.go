@@ -4,6 +4,8 @@ import (
 	u "backend-masterclass/util"
 	"database/sql"
 	"errors"
+
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 const (
@@ -35,3 +37,28 @@ var (
 	ErrConnection     = errors.New("connection error")
 	ErrRecordNotFound = sql.ErrNoRows
 )
+
+// translateSQLError translates a SQL error into a more readable error.
+func translateSQLError(err error) (trError error, errNotNil bool) {
+
+	errNotNil = err != nil
+	trError = err
+	// pgconn.PgError is initialised to nil so we can't use it inside As.
+	// That's why we take its address, which still implements the error interface.
+	var pgxErr *pgconn.PgError
+
+	// Checking if err's message appears in the constraintViolations slice
+	// Type assertion under the hood.
+	if errors.As(err, &pgxErr) {
+		if constraintViolations.Contains(pgxErr.Code) {
+			trError = ErrForbiddenInput
+
+			// Checking if err's message appears in the connectionErrors slice
+		} else if connectionErrors.Contains(err.Error()) {
+			trError = ErrConnection
+		}
+	}
+
+	// In all other cases, the original error is returned.
+	return
+}
