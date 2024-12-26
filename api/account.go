@@ -153,19 +153,7 @@ func (server *Server) listAccounts(ctx *gin.Context) {
 
 	accounts, err := server.Store.ListAccounts(ctx, arg)
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
-
-		if errors.Is(err, sqlc.ErrRecordNotFound) {
-			ctx.JSON(http.StatusUnprocessableEntity, errorResponse(err))
-			return
-
-		} else if errors.Is(trErr, sqlc.ErrConnection) {
-			ctx.JSON(http.StatusNotFound, errorResponse(err))
-			return
-		}
-
-		// Any other error.
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
+		handleError(server, ctx, trErr)
 	}
 
 	ctx.JSON(http.StatusOK, accounts)
@@ -184,21 +172,13 @@ func (server *Server) deleteAccount(ctx *gin.Context) {
 	}
 
 	account, err := server.Store.GetAccount(ctx, req.ID)
-	if err != nil {
-		if errors.Is(err, sqlc.ErrRecordNotFound) {
-			ctx.JSON(http.StatusNotFound, errorResponse(err))
-			return
-		}
+	if trErr, notNil := server.Store.TranslateError(err); notNil {
+		handleError(server, ctx, trErr)
 	}
 
 	err = server.Store.DeleteAccount(ctx, req.ID)
-	if err != nil {
-		if errors.Is(err, sqlc.ErrRecordNotFound) {
-			ctx.JSON(http.StatusNotFound, errorResponse(err))
-			return
-		}
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
+	if trErr, notNil := server.Store.TranslateError(err); notNil {
+		handleError(server, ctx, trErr)
 	}
 
 	ctx.JSON(http.StatusOK, fmt.Sprintln("Account ", account,
@@ -224,17 +204,13 @@ func (server *Server) updateAccountBalance(ctx *gin.Context) {
 	}
 
 	accountBefore, err := server.Store.GetAccount(ctx, req.ID)
-	if err != nil {
-		if errors.Is(err, sqlc.ErrRecordNotFound) {
-			ctx.JSON(http.StatusNotFound, errorResponse(err))
-			return
-		}
+	if trErr, notNil := server.Store.TranslateError(err); notNil {
+		handleError(server, ctx, trErr)
 	}
 
 	accountAfter, err := server.Store.UpdateAccountBalance(ctx, arg)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
+	if trErr, notNil := server.Store.TranslateError(err); notNil {
+		handleError(server, ctx, trErr)
 	}
 
 	output := struct{ Before, After sqlc.Account }{
@@ -264,17 +240,13 @@ func (server *Server) updateAccount(ctx *gin.Context) {
 	}
 
 	accountBefore, err := server.Store.GetAccount(ctx, req.ID)
-	if err != nil {
-		if errors.Is(err, sqlc.ErrRecordNotFound) {
-			ctx.JSON(http.StatusNotFound, errorResponse(err))
-			return
-		}
+	if trErr, notNil := server.Store.TranslateError(err); notNil {
+		handleError(server, ctx, trErr)
 	}
 
 	accountAfter, err := server.Store.UpdateAccount(ctx, arg)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
+	if trErr, notNil := server.Store.TranslateError(err); notNil {
+		handleError(server, ctx, trErr)
 	}
 
 	output := struct{ Before, After sqlc.Account }{
