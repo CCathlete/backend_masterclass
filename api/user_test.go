@@ -82,7 +82,7 @@ func TestCreateUserAPI(t *testing.T) {
 					Email:    user.Email,
 				}
 
-				// The request body will be sent through server.router abd here we require the request body to be the same as what appears in gomock.Eq().
+				// The request body will be sent through server.Router abd here we require the request body to be the same as what appears in gomock.Eq().
 				store.EXPECT().CreateUser(gomock.Any(),
 					// password is defined in the beginning of this test function.
 					EqCreateUserParams(arg, password)).
@@ -256,7 +256,7 @@ func TestCreateUserAPI(t *testing.T) {
 
 			// We use the inner ServeHTTP method and not Gin's Run method
 			// because we want to use our recorder as a response writer.
-			server.router.ServeHTTP(recorder, request)
+			server.Router.ServeHTTP(recorder, request)
 			tc.checkResponse(t, recorder)
 
 		})
@@ -367,7 +367,7 @@ func TestGetUserAPI(t *testing.T) {
 
 			// We use the inner ServeHTTP method and not Gin's Run method
 			// because we want to use our recorder as a response writer.
-			server.router.ServeHTTP(recorder, request)
+			server.Router.ServeHTTP(recorder, request)
 			tc.checkResponse(t, recorder)
 
 		})

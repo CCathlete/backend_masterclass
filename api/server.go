@@ -13,29 +13,29 @@ import (
 // Serves all HTTP requests for our banking service.
 
 type Server struct {
-	store sqlc.Store
+	Store sqlc.Store
 	// Responsible for creating the context for each route.
 	// It will automatically send the context to the handler functions.
-	router     *gin.Engine
-	authRouter gin.IRoutes
-	tokenMaker token.Maker
-	config     u.Config
+	Router     *gin.Engine
+	AuthRouter gin.IRoutes
+	TokenMaker token.Maker
+	Config     u.Config
 }
 
 func NewServer(store sqlc.Store, config u.Config, maker token.Maker,
 ) (s *Server) {
 	s = &Server{
-		store:      store,
-		config:     config,
-		tokenMaker: maker,
-		router:     gin.Default(),
+		Store:      store,
+		Config:     config,
+		TokenMaker: maker,
+		Router:     gin.Default(),
 	}
 	if validationEngine, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		validationEngine.RegisterValidation("validcurrency", validCurrency)
 	}
 
 	// We wrap our router with a middleware for all routes in the "all routes group".
-	s.authRouter = s.router.Group("/").Use(authMiddleware(s.tokenMaker))
+	s.AuthRouter = s.Router.Group("/").Use(authMiddleware(s.TokenMaker))
 	// ------------------No Auth Middleware--------------------
 	routeUser(s)
 	// ------------------With Auth Middleware------------------
@@ -46,45 +46,39 @@ func NewServer(store sqlc.Store, config u.Config, maker token.Maker,
 }
 
 func (server *Server) Start(address string) (err error) {
-	return server.router.Run(address)
-}
-
-func errorResponse(err error) (resBody gin.H) {
-	return gin.H{
-		"error": err.Error(),
-	}
+	return server.Router.Run(address)
 }
 
 func routeAccount(s *Server) {
 	// POST requests:
-	s.authRouter.POST("/accounts", s.createAccount)
-	s.authRouter.POST("/accounts/updbalance", s.updateAccountBalance)
-	s.authRouter.POST("/accounts/setbalance", s.updateAccount)
+	s.AuthRouter.POST("/accounts", s.createAccount)
+	s.AuthRouter.POST("/accounts/updbalance", s.updateAccountBalance)
+	s.AuthRouter.POST("/accounts/setbalance", s.updateAccount)
 	// GET Requests:
-	s.authRouter.GET("/accounts", s.listAccounts)
-	s.authRouter.GET("/accounts/:id", s.getAccount)
-	s.authRouter.GET("/accounts/forupdate/:id", s.getAccountForUpdate)
-	s.authRouter.GET("/accounts/delete/:id", s.deleteAccount)
+	s.AuthRouter.GET("/accounts", s.listAccounts)
+	s.AuthRouter.GET("/accounts/:id", s.getAccount)
+	s.AuthRouter.GET("/accounts/forupdate/:id", s.getAccountForUpdate)
+	s.AuthRouter.GET("/accounts/delete/:id", s.deleteAccount)
 }
 
 func routeTransfer(s *Server) {
 	// POST requests:
-	s.authRouter.POST("/transfers", s.createTransfer)
-	s.authRouter.POST("/transfers/updamount", s.updateTransfer)
-	s.authRouter.POST("/transfers/fromaccount", s.getTransfersFromAccount)
+	s.AuthRouter.POST("/transfers", s.createTransfer)
+	s.AuthRouter.POST("/transfers/updamount", s.updateTransfer)
+	s.AuthRouter.POST("/transfers/fromaccount", s.getTransfersFromAccount)
 	// GET Requests:
-	s.authRouter.GET("/transfers", s.listTransfers)
-	s.authRouter.GET("/transfers/:id", s.getTransfer)
-	s.authRouter.GET("/transfers/delete/:id", s.deleteTransfer)
+	s.AuthRouter.GET("/transfers", s.listTransfers)
+	s.AuthRouter.GET("/transfers/:id", s.getTransfer)
+	s.AuthRouter.GET("/transfers/delete/:id", s.deleteTransfer)
 }
 
 func routeUser(s *Server) {
 	// POST requests:
-	s.router.POST("/users", s.createUser)
-	s.router.POST("/users/login", s.loginUser)
-	s.router.POST("/users/updusername", s.updateUser)
+	s.Router.POST("/users", s.createUser)
+	s.Router.POST("/users/login", s.loginUser)
+	s.Router.POST("/users/updusername", s.updateUser)
 	// GET Requests:
-	s.router.GET("/users", s.listUsers)
-	s.router.GET("/users/:username", s.getUser)
-	s.router.GET("/users/delete/:username", s.deleteUser)
+	s.Router.GET("/users", s.listUsers)
+	s.Router.GET("/users/:username", s.getUser)
+	s.Router.GET("/users/delete/:username", s.deleteUser)
 }

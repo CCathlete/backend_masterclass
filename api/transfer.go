@@ -41,7 +41,7 @@ func (server *Server) createTransfer(ctx *gin.Context) {
 	}
 
 	// After we validated the transfer parameters, we can proceed with the transfer.
-	transfer, err := server.store.TransferTx(ctx, arg)
+	transfer, err := server.Store.TransferTx(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -62,7 +62,7 @@ func (server *Server) getTransfer(ctx *gin.Context) {
 		return
 	}
 
-	transfer, err := server.store.GetTransfer(ctx, req.ID)
+	transfer, err := server.Store.GetTransfer(ctx, req.ID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
@@ -105,7 +105,7 @@ func (server *Server) listTransfers(ctx *gin.Context) {
 		Offset: (req.PageID - 1) * req.PageSize,
 	}
 
-	transfers, err := server.store.ListTransfers(ctx, arg)
+	transfers, err := server.Store.ListTransfers(ctx, arg)
 	if err != nil {
 		if err == sqlc.ErrRecordNotFound {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
@@ -138,7 +138,7 @@ func (server *Server) getTransfersFromAccount(ctx *gin.Context) {
 	}
 
 	// -----------------Getting the transfers.----------------------------
-	transfers, err := server.store.GetTransfersFrom(ctx, req.AccountID)
+	transfers, err := server.Store.GetTransfersFrom(ctx, req.AccountID)
 	if err != nil {
 		if err == sqlc.ErrRecordNotFound {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
@@ -168,7 +168,7 @@ func (server *Server) deleteTransfer(ctx *gin.Context) {
 		return
 	}
 
-	transfer, err := server.store.GetTransfer(ctx, req.ID)
+	transfer, err := server.Store.GetTransfer(ctx, req.ID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
@@ -183,7 +183,7 @@ func (server *Server) deleteTransfer(ctx *gin.Context) {
 		return
 	}
 
-	err = server.store.DeleteTransfer(ctx, req.ID)
+	err = server.Store.DeleteTransfer(ctx, req.ID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
@@ -215,7 +215,7 @@ func (server *Server) updateTransfer(ctx *gin.Context) {
 		ID:     req.ID,
 	}
 
-	transferBefore, err := server.store.GetTransfer(ctx, req.ID)
+	transferBefore, err := server.Store.GetTransfer(ctx, req.ID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
@@ -230,7 +230,7 @@ func (server *Server) updateTransfer(ctx *gin.Context) {
 		return
 	}
 
-	transferAfter, err := server.store.UpdateTransfer(ctx, arg)
+	transferAfter, err := server.Store.UpdateTransfer(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -287,7 +287,7 @@ func (s *Server) validAccount(ctx *gin.Context, accountID int64,
 	txCurrency string, isToAccount bool,
 ) (account sqlc.Account, ok bool) {
 
-	account, err := s.store.GetAccount(ctx, accountID)
+	account, err := s.Store.GetAccount(ctx, accountID)
 	if err != nil {
 		if err == sqlc.ErrRecordNotFound {
 			err = fmt.Errorf("account validation error (not found)")

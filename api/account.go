@@ -31,8 +31,8 @@ func (server *Server) createAccount(ctx *gin.Context) {
 		Balance:  0,
 	}
 
-	account, err := server.store.CreateAccount(ctx, arg)
-	if trErr, notNil := server.store.TranslateError(err); notNil {
+	account, err := server.Store.CreateAccount(ctx, arg)
+	if trErr, notNil := server.Store.TranslateError(err); notNil {
 
 		if errors.Is(trErr, sqlc.ErrForbiddenInput) {
 			ctx.JSON(http.StatusForbidden, errorResponse(err))
@@ -63,8 +63,8 @@ func (server *Server) getAccount(ctx *gin.Context) {
 		return
 	}
 
-	account, err := server.store.GetAccount(ctx, req.ID)
-	if trErr, notNil := server.store.TranslateError(err); notNil {
+	account, err := server.Store.GetAccount(ctx, req.ID)
+	if trErr, notNil := server.Store.TranslateError(err); notNil {
 
 		if errors.Is(err, sqlc.ErrRecordNotFound) {
 			ctx.JSON(http.StatusUnprocessableEntity, errorResponse(err))
@@ -106,21 +106,9 @@ func (server *Server) getAccountForUpdate(ctx *gin.Context) {
 		return
 	}
 
-	account, err := server.store.GetAccountForUpdate(ctx, req.ID)
-	if trErr, notNil := server.store.TranslateError(err); notNil {
-
-		if errors.Is(err, sqlc.ErrRecordNotFound) {
-			ctx.JSON(http.StatusUnprocessableEntity, errorResponse(err))
-			return
-
-		} else if errors.Is(trErr, sqlc.ErrConnection) {
-			ctx.JSON(http.StatusNotFound, errorResponse(err))
-			return
-		}
-
-		// Any other error.
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
+	account, err := server.Store.GetAccountForUpdate(ctx, req.ID)
+	if trErr, notNil := server.Store.TranslateError(err); notNil {
+		handleError(server, ctx, trErr)
 	}
 
 	// Making sure that the logged in user is allowed to see the account.
@@ -163,8 +151,8 @@ func (server *Server) listAccounts(ctx *gin.Context) {
 		Offset: (req.PageID - 1) * req.PageSize,
 	}
 
-	accounts, err := server.store.ListAccounts(ctx, arg)
-	if trErr, notNil := server.store.TranslateError(err); notNil {
+	accounts, err := server.Store.ListAccounts(ctx, arg)
+	if trErr, notNil := server.Store.TranslateError(err); notNil {
 
 		if errors.Is(err, sqlc.ErrRecordNotFound) {
 			ctx.JSON(http.StatusUnprocessableEntity, errorResponse(err))
@@ -195,7 +183,7 @@ func (server *Server) deleteAccount(ctx *gin.Context) {
 		return
 	}
 
-	account, err := server.store.GetAccount(ctx, req.ID)
+	account, err := server.Store.GetAccount(ctx, req.ID)
 	if err != nil {
 		if errors.Is(err, sqlc.ErrRecordNotFound) {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
@@ -203,7 +191,7 @@ func (server *Server) deleteAccount(ctx *gin.Context) {
 		}
 	}
 
-	err = server.store.DeleteAccount(ctx, req.ID)
+	err = server.Store.DeleteAccount(ctx, req.ID)
 	if err != nil {
 		if errors.Is(err, sqlc.ErrRecordNotFound) {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
@@ -235,7 +223,7 @@ func (server *Server) updateAccountBalance(ctx *gin.Context) {
 		ID:     req.ID,
 	}
 
-	accountBefore, err := server.store.GetAccount(ctx, req.ID)
+	accountBefore, err := server.Store.GetAccount(ctx, req.ID)
 	if err != nil {
 		if errors.Is(err, sqlc.ErrRecordNotFound) {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
@@ -243,7 +231,7 @@ func (server *Server) updateAccountBalance(ctx *gin.Context) {
 		}
 	}
 
-	accountAfter, err := server.store.UpdateAccountBalance(ctx, arg)
+	accountAfter, err := server.Store.UpdateAccountBalance(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -275,7 +263,7 @@ func (server *Server) updateAccount(ctx *gin.Context) {
 		ID:      req.ID,
 	}
 
-	accountBefore, err := server.store.GetAccount(ctx, req.ID)
+	accountBefore, err := server.Store.GetAccount(ctx, req.ID)
 	if err != nil {
 		if errors.Is(err, sqlc.ErrRecordNotFound) {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
@@ -283,7 +271,7 @@ func (server *Server) updateAccount(ctx *gin.Context) {
 		}
 	}
 
-	accountAfter, err := server.store.UpdateAccount(ctx, arg)
+	accountAfter, err := server.Store.UpdateAccount(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

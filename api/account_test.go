@@ -203,7 +203,7 @@ func TestCreateAccountAPI(t *testing.T) {
 
 			// We use the inner ServeHTTP method and not Gin's Run method
 			// because we want to use our recorder as a response writer.
-			server.router.ServeHTTP(recorder, request)
+			server.Router.ServeHTTP(recorder, request)
 			tc.checkResponse(t, recorder)
 
 		})
@@ -370,7 +370,7 @@ func TestGetAccountAPI(t *testing.T) {
 
 			// We use the inner ServeHTTP method and not Gin's Run method
 			// because we want to use our recorder as a response writer.
-			server.router.ServeHTTP(recorder, request)
+			server.Router.ServeHTTP(recorder, request)
 			tc.checkResponse(t, recorder)
 
 		})
@@ -573,7 +573,7 @@ func TestListAccountsAPI(t *testing.T) {
 			require.NoError(t, err)
 
 			// ----------Putting authentication token in request--------------
-			tc.setupAuth(t, request, server.tokenMaker, authorisationTypeBearer, user.Username, server.config.AccessTokenDuration)
+			tc.setupAuth(t, request, server.TokenMaker, authorisationTypeBearer, user.Username, server.Config.AccessTokenDuration)
 
 			// ---------Loading query parameters into the request-------------
 			query := request.URL.Query()
@@ -584,7 +584,7 @@ func TestListAccountsAPI(t *testing.T) {
 			// ------------------Running the test------------------------------
 			// We use the inner ServeHTTP method and not Gin's Run method
 			// because we want to use our recorder as a response writer.
-			server.router.ServeHTTP(recorder, request)
+			server.Router.ServeHTTP(recorder, request)
 			tc.checkResponse(t, recorder)
 		})
 	}

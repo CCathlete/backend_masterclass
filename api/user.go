@@ -56,10 +56,10 @@ func (server *Server) createUser(ctx *gin.Context) {
 	}
 	arg.HashedPassword = hash
 
-	user, err := server.store.CreateUser(ctx, arg)
+	user, err := server.Store.CreateUser(ctx, arg)
 	if err != nil {
 
-		trErr := server.store.TranslateError(err)
+		trErr, _ := server.Store.TranslateError(err)
 		if errors.Is(trErr, sqlc.ErrForbiddenInput) {
 			ctx.JSON(http.StatusForbidden, errorResponse(err))
 			return
@@ -90,7 +90,7 @@ func (server *Server) getUser(ctx *gin.Context) {
 		return
 	}
 
-	user, err := server.store.GetUser(ctx, req.Username)
+	user, err := server.Store.GetUser(ctx, req.Username)
 	if err != nil {
 		if errors.Is(err, sqlc.ErrRecordNotFound) {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
@@ -115,7 +115,7 @@ func (server *Server) deleteUser(ctx *gin.Context) {
 		return
 	}
 
-	user, err := server.store.GetUser(ctx, req.Username)
+	user, err := server.Store.GetUser(ctx, req.Username)
 	if err != nil {
 		if errors.Is(err, sqlc.ErrRecordNotFound) {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
@@ -123,7 +123,7 @@ func (server *Server) deleteUser(ctx *gin.Context) {
 		}
 	}
 
-	err = server.store.DeleteUser(ctx, req.Username)
+	err = server.Store.DeleteUser(ctx, req.Username)
 	if err != nil {
 		if errors.Is(err, sqlc.ErrRecordNotFound) {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
@@ -161,7 +161,7 @@ func (server *Server) listUsers(ctx *gin.Context) {
 		Offset: (req.PageID - 1) * req.PageSize,
 	}
 
-	users, err := server.store.ListUsers(ctx, arg)
+	users, err := server.Store.ListUsers(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -188,7 +188,7 @@ func (server *Server) updateUser(ctx *gin.Context) {
 		Username:       req.Username,
 	}
 
-	userBefore, err := server.store.GetUser(ctx, req.Username)
+	userBefore, err := server.Store.GetUser(ctx, req.Username)
 	if err != nil {
 		if errors.Is(err, sqlc.ErrRecordNotFound) {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
@@ -196,7 +196,7 @@ func (server *Server) updateUser(ctx *gin.Context) {
 		}
 	}
 
-	userAfter, err := server.store.UpdateUser(ctx, arg)
+	userAfter, err := server.Store.UpdateUser(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -230,7 +230,7 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		return
 	}
 
-	user, err := server.store.GetUser(ctx, req.Username)
+	user, err := server.Store.GetUser(ctx, req.Username)
 	if err != nil {
 		if errors.Is(err, sqlc.ErrRecordNotFound) {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
@@ -246,9 +246,9 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		return
 	}
 
-	signedTokenString, err := server.tokenMaker.CreateToken(
+	signedTokenString, err := server.TokenMaker.CreateToken(
 		user.Username,
-		server.config.AccessTokenDuration,
+		server.Config.AccessTokenDuration,
 	)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -257,7 +257,7 @@ func (server *Server) loginUser(ctx *gin.Context) {
 
 	rsp := loginUserResponse{
 		AccessToken:          signedTokenString,
-		AccessTokenExpiresAt: time.Now().Add(server.config.AccessTokenDuration),
+		AccessTokenExpiresAt: time.Now().Add(server.Config.AccessTokenDuration),
 		userResponse:         newUserResponse(user),
 	}
 

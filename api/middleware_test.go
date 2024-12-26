@@ -160,9 +160,9 @@ func TestAuthMiddleware(t *testing.T) {
 
 			authPath := "/auth"
 
-			server.router.GET(
+			server.Router.GET(
 				authPath,
-				authMiddleware(server.tokenMaker),
+				authMiddleware(server.TokenMaker),
 				testHandlerFunc,
 			)
 
@@ -170,10 +170,10 @@ func TestAuthMiddleware(t *testing.T) {
 			recorder := httptest.NewRecorder()
 			request, err := http.NewRequest(http.MethodGet, authPath, nil)
 			require.NoError(t, err)
-			tc.setupAuth(t, request, server.tokenMaker)
+			tc.setupAuth(t, request, server.TokenMaker)
 
 			// ------------------Running the test------------------------------
-			server.router.ServeHTTP(recorder, request)
+			server.Router.ServeHTTP(recorder, request)
 			tc.checkResponse(t, recorder)
 		})
 	}
