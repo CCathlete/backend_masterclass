@@ -97,6 +97,9 @@ func TestTransferAPI(t *testing.T) {
 				store.EXPECT().
 					TransferTx(gomock.Any(), gomock.Any()).
 					Times(0)
+
+				store.EXPECT().TranslateError(gomock.Any()).Times(1).
+					Return(sqlc.ErrRecordNotFound, true)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusNotFound, recorder.Code)
@@ -123,6 +126,9 @@ func TestTransferAPI(t *testing.T) {
 				store.EXPECT().
 					TransferTx(gomock.Any(), gomock.Any()).
 					Times(0)
+
+				store.EXPECT().TranslateError(gomock.Any()).Times(1).
+					Return(sqlc.ErrRecordNotFound, true)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusNotFound, recorder.Code)
@@ -150,6 +156,8 @@ func TestTransferAPI(t *testing.T) {
 				store.EXPECT().
 					TransferTx(gomock.Any(), gomock.Any()).
 					Times(0)
+
+				// --------No TranslateError since it's server level------------
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusBadRequest, recorder.Code)
@@ -176,6 +184,8 @@ func TestTransferAPI(t *testing.T) {
 				store.EXPECT().
 					TransferTx(gomock.Any(), gomock.Any()).
 					Times(0)
+
+				// --------No TranslateError since it's server level------------
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusBadRequest, recorder.Code)
@@ -200,6 +210,8 @@ func TestTransferAPI(t *testing.T) {
 				store.EXPECT().
 					TransferTx(gomock.Any(), gomock.Any()).
 					Times(0)
+
+				// --------No TranslateError since it's server level------------
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusBadRequest, recorder.Code)
@@ -224,6 +236,8 @@ func TestTransferAPI(t *testing.T) {
 				store.EXPECT().
 					TransferTx(gomock.Any(), gomock.Any()).
 					Times(0)
+
+				// --------No TranslateError since it's server level------------
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusBadRequest, recorder.Code)
@@ -246,6 +260,9 @@ func TestTransferAPI(t *testing.T) {
 				store.EXPECT().
 					TransferTx(gomock.Any(), gomock.Any()).
 					Times(0)
+
+				store.EXPECT().TranslateError(gomock.Any()).Times(1).
+					Return(sqlc.ErrRecordNotFound, true)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusInternalServerError, recorder.Code)

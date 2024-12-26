@@ -119,7 +119,7 @@ func TestCreateUserAPI(t *testing.T) {
 					Return(sqlc.User{}, sqlc.ErrConnection)
 
 				store.EXPECT().TranslateError(gomock.Any()).Times(1).
-					Return(sqlc.ErrConnection)
+					Return(sqlc.ErrConnection, true)
 
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -151,7 +151,7 @@ func TestCreateUserAPI(t *testing.T) {
 					Return(sqlc.User{}, sqlc.ErrForbiddenInput)
 
 				store.EXPECT().TranslateError(gomock.Any()).Times(1).
-					Return(sqlc.ErrForbiddenInput)
+					Return(sqlc.ErrForbiddenInput, true)
 
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
