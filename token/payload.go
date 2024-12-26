@@ -1,6 +1,7 @@
 package token
 
 import (
+	tokenUtil "backend-masterclass/token/util"
 	"time"
 
 	"github.com/google/uuid"
@@ -32,7 +33,7 @@ func Newpayload(username string, duration time.Duration) (*Payload, error) {
 // For the payload to implement the jwt.Claims interface we need it to have this method to check if we can create a valid token using this payload.
 func (p *Payload) Valid() error {
 	if time.Now().After(p.ExpiredAt) {
-		return ErrExpiredToken
+		return tokenUtil.ErrExpiredToken
 	}
 	return nil
 }

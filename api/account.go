@@ -32,15 +32,13 @@ func (server *Server) createAccount(ctx *gin.Context) {
 	}
 
 	account, err := server.store.CreateAccount(ctx, arg)
-	if err != nil {
+	if trErr, notNil := server.store.TranslateError(err); notNil {
 
-		// TODO: Put constant errors instead or errors.New(...).
-		trErr := server.store.TranslateError(err)
-		if errors.Is(trErr, errors.New("forbidden input")) {
+		if errors.Is(trErr, sqlc.ErrForbiddenInput) {
 			ctx.JSON(http.StatusForbidden, errorResponse(err))
 			return
 
-		} else if errors.Is(trErr, errors.New("connection error")) {
+		} else if errors.Is(trErr, sqlc.ErrConnection) {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
 			return
 		}
@@ -66,12 +64,18 @@ func (server *Server) getAccount(ctx *gin.Context) {
 	}
 
 	account, err := server.store.GetAccount(ctx, req.ID)
-	// TODO: Translate errors.
-	if err != nil {
+	if trErr, notNil := server.store.TranslateError(err); notNil {
+
 		if errors.Is(err, sqlc.ErrRecordNotFound) {
+			ctx.JSON(http.StatusUnprocessableEntity, errorResponse(err))
+			return
+
+		} else if errors.Is(trErr, sqlc.ErrConnection) {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
 			return
 		}
+
+		// Any other error.
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
@@ -103,11 +107,18 @@ func (server *Server) getAccountForUpdate(ctx *gin.Context) {
 	}
 
 	account, err := server.store.GetAccountForUpdate(ctx, req.ID)
-	if err != nil {
+	if trErr, notNil := server.store.TranslateError(err); notNil {
+
 		if errors.Is(err, sqlc.ErrRecordNotFound) {
+			ctx.JSON(http.StatusUnprocessableEntity, errorResponse(err))
+			return
+
+		} else if errors.Is(trErr, sqlc.ErrConnection) {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
 			return
 		}
+
+		// Any other error.
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
@@ -153,7 +164,18 @@ func (server *Server) listAccounts(ctx *gin.Context) {
 	}
 
 	accounts, err := server.store.ListAccounts(ctx, arg)
-	if err != nil {
+	if trErr, notNil := server.store.TranslateError(err); notNil {
+
+		if errors.Is(err, sqlc.ErrRecordNotFound) {
+			ctx.JSON(http.StatusUnprocessableEntity, errorResponse(err))
+			return
+
+		} else if errors.Is(trErr, sqlc.ErrConnection) {
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		}
+
+		// Any other error.
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}

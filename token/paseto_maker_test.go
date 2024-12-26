@@ -1,6 +1,7 @@
 package token
 
 import (
+	tokenUtil "backend-masterclass/token/util"
 	u "backend-masterclass/util"
 	"testing"
 	"time"
@@ -49,6 +50,6 @@ func TestExpiredPasetoToken(t *testing.T) {
 
 	payload, err := maker.VerifyToken(token)
 	require.Error(t, err)
-	require.EqualError(t, err, ErrExpiredToken.Error())
+	require.EqualError(t, err, tokenUtil.ErrExpiredToken.Error())
 	require.Nil(t, payload)
 }

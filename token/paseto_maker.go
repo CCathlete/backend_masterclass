@@ -1,6 +1,7 @@
 package token
 
 import (
+	tokenUtil "backend-masterclass/token/util"
 	"time"
 
 	"golang.org/x/crypto/chacha20poly1305"
@@ -15,7 +16,7 @@ type PasetoMaker struct {
 
 func NewPasetoMaker(secretKey string) (Maker, error) {
 	if len(secretKey) != chacha20poly1305.KeySize {
-		return nil, ErrInvalidKeySize
+		return nil, tokenUtil.ErrInvalidKeySize
 	}
 
 	return &PasetoMaker{
@@ -39,7 +40,7 @@ func (maker *PasetoMaker) VerifyToken(signedTokenString string) (payload *Payloa
 
 	err = maker.Decrypt(signedTokenString, []byte(maker.secretKey), payload, nil)
 	if err != nil {
-		err = ErrInvalidToken
+		err = tokenUtil.ErrInvalidToken
 		return
 	}
 

@@ -353,11 +353,12 @@ func (mr *MockStoreMockRecorder) TransferTx(ctx, arg any) *gomock.Call {
 }
 
 // TranslateError mocks base method.
-func (m *MockStore) TranslateError(err error) error {
+func (m *MockStore) TranslateError(err error) (error, bool) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "TranslateError", err)
 	ret0, _ := ret[0].(error)
-	return ret0
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
 }
 
 // TranslateError indicates an expected call of TranslateError.

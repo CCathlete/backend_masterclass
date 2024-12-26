@@ -1,6 +1,7 @@
 package token
 
 import (
+	tokenUtil "backend-masterclass/token/util"
 	u "backend-masterclass/util"
 	"testing"
 	"time"
@@ -45,7 +46,7 @@ func TestExpiredJWTToken(t *testing.T) {
 
 	payload, err := maker.VerifyToken(token)
 	require.Error(t, err)
-	require.EqualError(t, err, ErrExpiredToken.Error())
+	require.EqualError(t, err, tokenUtil.ErrExpiredToken.Error())
 	require.Nil(t, payload)
 }
 
@@ -74,6 +75,6 @@ func TestInvalidJWTTokenAlgNone(t *testing.T) {
 	// Now for the big part, we want to test our verification method, showing that it won't verify a token signed with a different key even if the signing algorithm was none.
 	payload, err = maker.VerifyToken(signedTokenString)
 	require.Error(t, err)
-	require.EqualError(t, err, ErrInvalidToken.Error())
+	require.EqualError(t, err, tokenUtil.ErrInvalidToken.Error())
 	require.Nil(t, payload)
 }
