@@ -53,7 +53,8 @@ func routeAccount(s *Server) {
 	// POST requests:
 	s.AuthRouter.POST("/accounts", s.createAccount)
 	s.AuthRouter.POST("/accounts/updbalance", s.updateAccountBalance)
-	s.AuthRouter.POST("/accounts/setbalance", s.updateAccount)
+	// s.AuthRouter.POST("/accounts/setbalance", s.updateAccount)
+
 	// GET Requests:
 	s.AuthRouter.GET("/accounts", s.listAccounts)
 	s.AuthRouter.GET("/accounts/:id", s.getAccount)
@@ -66,6 +67,7 @@ func routeTransfer(s *Server) {
 	s.AuthRouter.POST("/transfers", s.createTransfer)
 	s.AuthRouter.POST("/transfers/updamount", s.updateTransfer)
 	s.AuthRouter.POST("/transfers/fromaccount", s.getTransfersFromAccount)
+
 	// GET Requests:
 	s.AuthRouter.GET("/transfers", s.listTransfers)
 	s.AuthRouter.GET("/transfers/:id", s.getTransfer)
