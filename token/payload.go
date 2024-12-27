@@ -12,7 +12,7 @@ type Payload struct {
 	ID        uuid.UUID
 	Username  string    `json:"username"`
 	IssuedAt  time.Time `json:"issued_at"`
-	ExpiredAt time.Time `json:"expired_at"`
+	ExpiresAt time.Time `json:"expires_at"`
 }
 
 // NewPayload creates a new token payload with a specific username and duration.
@@ -25,14 +25,14 @@ func Newpayload(username string, duration time.Duration) (*Payload, error) {
 		ID:        tokenID,
 		Username:  username,
 		IssuedAt:  time.Now(),
-		ExpiredAt: time.Now().Add(duration),
+		ExpiresAt: time.Now().Add(duration),
 	}
 	return payload, nil
 }
 
 // For the payload to implement the jwt.Claims interface we need it to have this method to check if we can create a valid token using this payload.
 func (p *Payload) Valid() error {
-	if time.Now().After(p.ExpiredAt) {
+	if time.Now().After(p.ExpiresAt) {
 		return tokenUtil.ErrExpiredToken
 	}
 	return nil

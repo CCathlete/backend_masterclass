@@ -4,10 +4,12 @@ import (
 	"backend-masterclass/db/sqlc"
 	u "backend-masterclass/util"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type createUserRequest struct {
@@ -190,9 +192,12 @@ type loginUserRequest struct {
 }
 
 type loginUserResponse struct {
-	AccessToken          string    `json:"access_token"`
-	AccessTokenExpiresAt time.Time `json:"access_token_expires_at"`
-	userResponse         `json:"user"`
+	SessionID             uuid.UUID `json:"session_id"` // refreshToken id
+	AccessToken           string    `json:"access_token"`
+	AccessTokenExpiresAt  time.Time `json:"access_token_expires_at"`
+	RefreshToken          string    `json:"refresh_token"`
+	RefreshTokenExpiresAt time.Time `json:"refresh_token_expires_at"`
+	userResponse          `json:"user"`
 }
 
 func (server *Server) loginUser(ctx *gin.Context) {
@@ -219,7 +224,7 @@ func (server *Server) loginUser(ctx *gin.Context) {
 	}
 
 	// -----------Creating a signed authentication token.-----------------
-	accessTokenString, _, err := server.TokenMaker.CreateToken(
+	accessTokenString, accessPayload, err := server.TokenMaker.CreateToken(
 		user.Username,
 		server.Config.AccessTokenDuration,
 	)
@@ -229,7 +234,7 @@ func (server *Server) loginUser(ctx *gin.Context) {
 	}
 
 	// ----------------Creating a refresh token.--------------------------
-	refreshToken, payload, err := server.TokenMaker.CreateToken(
+	refreshToken, refreshPayload, err := server.TokenMaker.CreateToken(
 		user.Username,
 		server.Config.RefreshTokenDuration,
 	)
@@ -239,21 +244,31 @@ func (server *Server) loginUser(ctx *gin.Context) {
 	}
 
 	// ----------------Saving the refresh token.--------------------------
-	err = server.Store.CreateSesion(ctx, sqlc.CreateSessionParams{
-		Username:          user.Username,
-		RefreshTokenHash:  refreshToken,
-		RefreshTokenValid: true,
+	session, err := server.Store.CreateSession(ctx, sqlc.CreateSessionParams{
+		ID:           refreshPayload.ID,
+		Username:     user.Username,
+		RefreshToken: refreshToken,
+		UserAgent:    "", // TODO: add user agent.
+		ClientIp:     "", // TODO: add client ip.
+		IsBlocked:    false,
+		ExpiresAt:    refreshPayload.ExpiresAt,
 	})
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
 		handleError(server, ctx, trErr)
 		return
 	}
+	log.Println("Created session:", session)
 
-	// ----------Sending the tokens in the response.-----------------------
+	// ----------Sending the tokens in the response.----------------------
 	rsp := loginUserResponse{
+		SessionID:            session.ID, // refreshToken id.
 		AccessToken:          accessTokenString,
-		AccessTokenExpiresAt: time.Now().Add(server.Config.AccessTokenDuration),
-		userResponse:         newUserResponse(user),
+		AccessTokenExpiresAt: refreshPayload.ExpiresAt,
+
+		RefreshToken:          refreshToken,
+		RefreshTokenExpiresAt: accessPayload.ExpiresAt,
+
+		userResponse: newUserResponse(user),
 	}
 
 	ctx.JSON(http.StatusOK, rsp)
