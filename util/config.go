@@ -9,15 +9,16 @@ import (
 // States all configurations of the application.
 // The values are read by viper from a .env file.
 type Config struct {
-	Host                string        `mapstructure:"DB_HOST"`
-	Port                string        `mapstructure:"DB_PORT"`
-	User                string        `mapstructure:"DB_USER"`
-	Password            string        `mapstructure:"DB_PASS"`
-	DBName              string        `mapstructure:"DB_NAME"`
-	SSLMode             string        `mapstructure:"DB_SSL_MODE"`
-	ServerAddress       string        `mapstructure:"SERVER_ADDRESS"`
-	TokenKey            string        `mapstructure:"TOKEN_KEY"`
-	AccessTokenDuration time.Duration `mapstructure:"ACCESS_TOKEN_DURATION"`
+	Host                 string        `mapstructure:"DB_HOST"`
+	Port                 string        `mapstructure:"DB_PORT"`
+	User                 string        `mapstructure:"DB_USER"`
+	Password             string        `mapstructure:"DB_PASS"`
+	DBName               string        `mapstructure:"DB_NAME"`
+	SSLMode              string        `mapstructure:"DB_SSL_MODE"`
+	ServerAddress        string        `mapstructure:"SERVER_ADDRESS"`
+	TokenKey             string        `mapstructure:"TOKEN_KEY"`
+	AccessTokenDuration  time.Duration `mapstructure:"ACCESS_TOKEN_DURATION"`
+	RefreshTokenDuration time.Duration `mapstructure:"REFRESH_TOKEN_DURATION"`
 }
 
 // Reads configuration from files or env variables.
