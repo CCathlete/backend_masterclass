@@ -50,7 +50,7 @@ func translateSQLError(err error) (trError error, errNotNil bool) {
 
 	// Checking if err's message appears in the constraintViolations slice
 	// Type assertion under the hood.
-	if errors.As(err, &pgxErr) {
+	if errors.As(err, &pgxErr) && errNotNil {
 		if constraintViolations.Contains(pgxErr.Code) {
 			trError = ErrForbiddenInput
 
