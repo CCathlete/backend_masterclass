@@ -6,15 +6,24 @@ package sqlc
 
 import (
 	"context"
+
+	"github.com/google/uuid"
 )
 
 type Querier interface {
+	BlockSession(ctx context.Context, id uuid.UUID) error
+	CountBlockedSessions(ctx context.Context) (int64, error)
+	CountSessions(ctx context.Context, username string) (int64, error)
 	CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error)
 	CreateEntry(ctx context.Context, arg CreateEntryParams) (Entry, error)
+	CreateSesion(ctx context.Context, arg CreateSesionParams) (Session, error)
 	CreateTransfer(ctx context.Context, arg CreateTransferParams) (Transfer, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteAccount(ctx context.Context, id int64) error
+	DeleteBlockedSessions(ctx context.Context) error
 	DeleteEntry(ctx context.Context, id int64) error
+	DeleteExpiredSessions(ctx context.Context) error
+	DeleteSession(ctx context.Context, id uuid.UUID) error
 	DeleteTransfer(ctx context.Context, id int64) error
 	// If there are no return values we use :exec instead of :one/many
 	DeleteUser(ctx context.Context, username string) error
@@ -22,20 +31,25 @@ type Querier interface {
 	GetAccountEntries(ctx context.Context, accountID int64) ([]Entry, error)
 	GetAccountForUpdate(ctx context.Context, id int64) (Account, error)
 	GetEntry(ctx context.Context, id int64) (Entry, error)
+	GetSession(ctx context.Context, id uuid.UUID) (Session, error)
 	GetTransfer(ctx context.Context, id int64) (Transfer, error)
 	GetTransfersFrom(ctx context.Context, fromAccountID int64) ([]Transfer, error)
 	GetTransfersTo(ctx context.Context, toAccountID int64) ([]Transfer, error)
 	GetUser(ctx context.Context, username string) (User, error)
 	ListAccounts(ctx context.Context, arg ListAccountsParams) ([]Account, error)
+	ListBlockedSessions(ctx context.Context, arg ListBlockedSessionsParams) ([]Session, error)
 	ListEntries(ctx context.Context, arg ListEntriesParams) ([]Entry, error)
+	ListSessions(ctx context.Context, arg ListSessionsParams) ([]Session, error)
 	ListTransfers(ctx context.Context, arg ListTransfersParams) ([]Transfer, error)
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]User, error)
+	UnblockSession(ctx context.Context, id uuid.UUID) error
 	// If there are no return values we use :exec instead of :one/many
 	UpdateAccount(ctx context.Context, arg UpdateAccountParams) (Account, error)
 	UpdateAccountBalance(ctx context.Context, arg UpdateAccountBalanceParams) (Account, error)
 	// If there are no return values we use :exec instead of :one/many
 	UpdateEntry(ctx context.Context, arg UpdateEntryParams) (Entry, error)
 	UpdateEntryByAccount(ctx context.Context, arg UpdateEntryByAccountParams) (Entry, error)
+	UpdateSession(ctx context.Context, arg UpdateSessionParams) (Session, error)
 	// If there are no return values we use :exec instead of :one/many
 	UpdateTransfer(ctx context.Context, arg UpdateTransferParams) (Transfer, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)

@@ -14,6 +14,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	uuid "github.com/google/uuid"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -39,6 +40,50 @@ func NewMockStore(ctrl *gomock.Controller) *MockStore {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockStore) EXPECT() *MockStoreMockRecorder {
 	return m.recorder
+}
+
+// BlockSession mocks base method.
+func (m *MockStore) BlockSession(ctx context.Context, id uuid.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BlockSession", ctx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BlockSession indicates an expected call of BlockSession.
+func (mr *MockStoreMockRecorder) BlockSession(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockSession", reflect.TypeOf((*MockStore)(nil).BlockSession), ctx, id)
+}
+
+// CountBlockedSessions mocks base method.
+func (m *MockStore) CountBlockedSessions(ctx context.Context) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CountBlockedSessions", ctx)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CountBlockedSessions indicates an expected call of CountBlockedSessions.
+func (mr *MockStoreMockRecorder) CountBlockedSessions(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountBlockedSessions", reflect.TypeOf((*MockStore)(nil).CountBlockedSessions), ctx)
+}
+
+// CountSessions mocks base method.
+func (m *MockStore) CountSessions(ctx context.Context, username string) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CountSessions", ctx, username)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CountSessions indicates an expected call of CountSessions.
+func (mr *MockStoreMockRecorder) CountSessions(ctx, username any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountSessions", reflect.TypeOf((*MockStore)(nil).CountSessions), ctx, username)
 }
 
 // CreateAccount mocks base method.
@@ -69,6 +114,21 @@ func (m *MockStore) CreateEntry(ctx context.Context, arg sqlc.CreateEntryParams)
 func (mr *MockStoreMockRecorder) CreateEntry(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateEntry", reflect.TypeOf((*MockStore)(nil).CreateEntry), ctx, arg)
+}
+
+// CreateSesion mocks base method.
+func (m *MockStore) CreateSesion(ctx context.Context, arg sqlc.CreateSesionParams) (sqlc.Session, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateSesion", ctx, arg)
+	ret0, _ := ret[0].(sqlc.Session)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateSesion indicates an expected call of CreateSesion.
+func (mr *MockStoreMockRecorder) CreateSesion(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSesion", reflect.TypeOf((*MockStore)(nil).CreateSesion), ctx, arg)
 }
 
 // CreateTransfer mocks base method.
@@ -115,6 +175,20 @@ func (mr *MockStoreMockRecorder) DeleteAccount(ctx, id any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAccount", reflect.TypeOf((*MockStore)(nil).DeleteAccount), ctx, id)
 }
 
+// DeleteBlockedSessions mocks base method.
+func (m *MockStore) DeleteBlockedSessions(ctx context.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteBlockedSessions", ctx)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteBlockedSessions indicates an expected call of DeleteBlockedSessions.
+func (mr *MockStoreMockRecorder) DeleteBlockedSessions(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteBlockedSessions", reflect.TypeOf((*MockStore)(nil).DeleteBlockedSessions), ctx)
+}
+
 // DeleteEntry mocks base method.
 func (m *MockStore) DeleteEntry(ctx context.Context, id int64) error {
 	m.ctrl.T.Helper()
@@ -127,6 +201,34 @@ func (m *MockStore) DeleteEntry(ctx context.Context, id int64) error {
 func (mr *MockStoreMockRecorder) DeleteEntry(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteEntry", reflect.TypeOf((*MockStore)(nil).DeleteEntry), ctx, id)
+}
+
+// DeleteExpiredSessions mocks base method.
+func (m *MockStore) DeleteExpiredSessions(ctx context.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteExpiredSessions", ctx)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteExpiredSessions indicates an expected call of DeleteExpiredSessions.
+func (mr *MockStoreMockRecorder) DeleteExpiredSessions(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteExpiredSessions", reflect.TypeOf((*MockStore)(nil).DeleteExpiredSessions), ctx)
+}
+
+// DeleteSession mocks base method.
+func (m *MockStore) DeleteSession(ctx context.Context, id uuid.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteSession", ctx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteSession indicates an expected call of DeleteSession.
+func (mr *MockStoreMockRecorder) DeleteSession(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSession", reflect.TypeOf((*MockStore)(nil).DeleteSession), ctx, id)
 }
 
 // DeleteTransfer mocks base method.
@@ -217,6 +319,21 @@ func (mr *MockStoreMockRecorder) GetEntry(ctx, id any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEntry", reflect.TypeOf((*MockStore)(nil).GetEntry), ctx, id)
 }
 
+// GetSession mocks base method.
+func (m *MockStore) GetSession(ctx context.Context, id uuid.UUID) (sqlc.Session, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSession", ctx, id)
+	ret0, _ := ret[0].(sqlc.Session)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSession indicates an expected call of GetSession.
+func (mr *MockStoreMockRecorder) GetSession(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSession", reflect.TypeOf((*MockStore)(nil).GetSession), ctx, id)
+}
+
 // GetTransfer mocks base method.
 func (m *MockStore) GetTransfer(ctx context.Context, id int64) (sqlc.Transfer, error) {
 	m.ctrl.T.Helper()
@@ -292,6 +409,21 @@ func (mr *MockStoreMockRecorder) ListAccounts(ctx, arg any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAccounts", reflect.TypeOf((*MockStore)(nil).ListAccounts), ctx, arg)
 }
 
+// ListBlockedSessions mocks base method.
+func (m *MockStore) ListBlockedSessions(ctx context.Context, arg sqlc.ListBlockedSessionsParams) ([]sqlc.Session, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListBlockedSessions", ctx, arg)
+	ret0, _ := ret[0].([]sqlc.Session)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListBlockedSessions indicates an expected call of ListBlockedSessions.
+func (mr *MockStoreMockRecorder) ListBlockedSessions(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListBlockedSessions", reflect.TypeOf((*MockStore)(nil).ListBlockedSessions), ctx, arg)
+}
+
 // ListEntries mocks base method.
 func (m *MockStore) ListEntries(ctx context.Context, arg sqlc.ListEntriesParams) ([]sqlc.Entry, error) {
 	m.ctrl.T.Helper()
@@ -305,6 +437,21 @@ func (m *MockStore) ListEntries(ctx context.Context, arg sqlc.ListEntriesParams)
 func (mr *MockStoreMockRecorder) ListEntries(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListEntries", reflect.TypeOf((*MockStore)(nil).ListEntries), ctx, arg)
+}
+
+// ListSessions mocks base method.
+func (m *MockStore) ListSessions(ctx context.Context, arg sqlc.ListSessionsParams) ([]sqlc.Session, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListSessions", ctx, arg)
+	ret0, _ := ret[0].([]sqlc.Session)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListSessions indicates an expected call of ListSessions.
+func (mr *MockStoreMockRecorder) ListSessions(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListSessions", reflect.TypeOf((*MockStore)(nil).ListSessions), ctx, arg)
 }
 
 // ListTransfers mocks base method.
@@ -367,6 +514,20 @@ func (mr *MockStoreMockRecorder) TranslateError(err any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TranslateError", reflect.TypeOf((*MockStore)(nil).TranslateError), err)
 }
 
+// UnblockSession mocks base method.
+func (m *MockStore) UnblockSession(ctx context.Context, id uuid.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UnblockSession", ctx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UnblockSession indicates an expected call of UnblockSession.
+func (mr *MockStoreMockRecorder) UnblockSession(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnblockSession", reflect.TypeOf((*MockStore)(nil).UnblockSession), ctx, id)
+}
+
 // UpdateAccount mocks base method.
 func (m *MockStore) UpdateAccount(ctx context.Context, arg sqlc.UpdateAccountParams) (sqlc.Account, error) {
 	m.ctrl.T.Helper()
@@ -425,6 +586,21 @@ func (m *MockStore) UpdateEntryByAccount(ctx context.Context, arg sqlc.UpdateEnt
 func (mr *MockStoreMockRecorder) UpdateEntryByAccount(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateEntryByAccount", reflect.TypeOf((*MockStore)(nil).UpdateEntryByAccount), ctx, arg)
+}
+
+// UpdateSession mocks base method.
+func (m *MockStore) UpdateSession(ctx context.Context, arg sqlc.UpdateSessionParams) (sqlc.Session, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateSession", ctx, arg)
+	ret0, _ := ret[0].(sqlc.Session)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateSession indicates an expected call of UpdateSession.
+func (mr *MockStoreMockRecorder) UpdateSession(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSession", reflect.TypeOf((*MockStore)(nil).UpdateSession), ctx, arg)
 }
 
 // UpdateTransfer mocks base method.
