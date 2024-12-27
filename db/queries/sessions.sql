@@ -2,7 +2,7 @@
 INSERT INTO sessions (
   id,
   username,
-  refresh_token
+  refresh_token,
   user_agent,
   client_ip,
   is_blocked,
