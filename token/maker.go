@@ -9,7 +9,7 @@ const (
 
 type Maker interface {
 	CreateToken(username string, duration time.Duration,
-	) (signedTokenString string, err error)
+	) (signedTokenString string, payload *Payload, err error)
 
 	VerifyToken(signedTokenString string) (*Payload, error)
 }

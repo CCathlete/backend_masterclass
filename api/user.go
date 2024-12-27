@@ -204,19 +204,22 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		return
 	}
 
+	// ---------Checking if the user exists in the database.--------------
 	user, err := server.Store.GetUser(ctx, req.Username)
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
 		handleError(server, ctx, trErr)
 		return
 	}
 
+	// ---------------Verifying the password.-----------------------------
 	err = u.CheckPassword(req.Password, user.HashedPassword)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
 		return
 	}
 
-	signedTokenString, err := server.TokenMaker.CreateToken(
+	// -----------Creating a signed authentication token.-----------------
+	accessTokenString, _, err := server.TokenMaker.CreateToken(
 		user.Username,
 		server.Config.AccessTokenDuration,
 	)
@@ -225,8 +228,30 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		return
 	}
 
+	// ----------------Creating a refresh token.--------------------------
+	refreshToken, payload, err := server.TokenMaker.CreateToken(
+		user.Username,
+		server.Config.RefreshTokenDuration,
+	)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	// ----------------Saving the refresh token.--------------------------
+	err = server.Store.CreateSesion(ctx, sqlc.CreateSessionParams{
+		Username:          user.Username,
+		RefreshTokenHash:  refreshToken,
+		RefreshTokenValid: true,
+	})
+	if trErr, notNil := server.Store.TranslateError(err); notNil {
+		handleError(server, ctx, trErr)
+		return
+	}
+
+	// ----------Sending the tokens in the response.-----------------------
 	rsp := loginUserResponse{
-		AccessToken:          signedTokenString,
+		AccessToken:          accessTokenString,
 		AccessTokenExpiresAt: time.Now().Add(server.Config.AccessTokenDuration),
 		userResponse:         newUserResponse(user),
 	}

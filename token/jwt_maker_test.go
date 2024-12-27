@@ -18,20 +18,27 @@ func TestJWTMaker(t *testing.T) {
 	username := u.RandomUsername()
 	duration := time.Minute
 
-	signedTokenString, err := maker.CreateToken(username, duration)
+	// -----------Token generation, returning the payload-----------------
+	signedTokenString, beforePayload, err :=
+		maker.CreateToken(username, duration)
 	require.NoError(t, err)
 	require.NotEmpty(t, signedTokenString)
+	require.NotNil(t, beforePayload)
 
-	payload, err := maker.VerifyToken(signedTokenString)
+	// -----------Token verification, returning the payload---------------
+	afterPayload, err := maker.VerifyToken(signedTokenString)
 	issuedAt := time.Now()
 	expiredAt := issuedAt.Add(duration)
 	require.NoError(t, err)
-	require.NotEmpty(t, payload)
+	require.NotEmpty(t, afterPayload)
 
-	require.NotZero(t, payload.ID)
-	require.Equal(t, username, payload.Username)
-	require.WithinDuration(t, issuedAt, payload.IssuedAt, time.Second)
-	require.WithinDuration(t, expiredAt, payload.ExpiredAt, time.Second)
+	require.NotZero(t, afterPayload.ID)
+	require.Equal(t, username, afterPayload.Username)
+	require.WithinDuration(t, issuedAt, afterPayload.IssuedAt, time.Second)
+	require.WithinDuration(t, expiredAt, afterPayload.ExpiredAt, time.Second)
+
+	// -----------Making sure that the payload is the same----------------
+	require.Equal(t, beforePayload, afterPayload)
 }
 
 func TestExpiredJWTToken(t *testing.T) {
@@ -40,14 +47,17 @@ func TestExpiredJWTToken(t *testing.T) {
 	require.NotEmpty(t, maker)
 
 	duration := -time.Minute
-	token, err := maker.CreateToken(u.RandomUsername(), duration)
+	token, beforePayload, err := maker.CreateToken(u.RandomUsername(), duration)
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
+	require.Nil(t, beforePayload)
 
-	payload, err := maker.VerifyToken(token)
+	afterPayload, err := maker.VerifyToken(token)
 	require.Error(t, err)
 	require.EqualError(t, err, tokenUtil.ErrExpiredToken.Error())
-	require.Nil(t, payload)
+	require.Nil(t, afterPayload)
+
+	require.Equal(t, beforePayload, afterPayload)
 }
 
 // Testing for use of alg "none".
