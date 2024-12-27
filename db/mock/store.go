@@ -116,19 +116,19 @@ func (mr *MockStoreMockRecorder) CreateEntry(ctx, arg any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateEntry", reflect.TypeOf((*MockStore)(nil).CreateEntry), ctx, arg)
 }
 
-// CreateSesion mocks base method.
-func (m *MockStore) CreateSesion(ctx context.Context, arg sqlc.CreateSesionParams) (sqlc.Session, error) {
+// CreateSession mocks base method.
+func (m *MockStore) CreateSession(ctx context.Context, arg sqlc.CreateSessionParams) (sqlc.Session, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateSesion", ctx, arg)
+	ret := m.ctrl.Call(m, "CreateSession", ctx, arg)
 	ret0, _ := ret[0].(sqlc.Session)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CreateSesion indicates an expected call of CreateSesion.
-func (mr *MockStoreMockRecorder) CreateSesion(ctx, arg any) *gomock.Call {
+// CreateSession indicates an expected call of CreateSession.
+func (mr *MockStoreMockRecorder) CreateSession(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSesion", reflect.TypeOf((*MockStore)(nil).CreateSesion), ctx, arg)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSession", reflect.TypeOf((*MockStore)(nil).CreateSession), ctx, arg)
 }
 
 // CreateTransfer mocks base method.

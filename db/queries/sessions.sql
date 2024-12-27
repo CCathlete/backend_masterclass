@@ -1,4 +1,4 @@
--- name: CreateSesion :one
+-- name: CreateSession :one
 INSERT INTO sessions (
   id,
   username,

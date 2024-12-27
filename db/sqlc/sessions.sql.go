@@ -47,7 +47,7 @@ func (q *Queries) CountSessions(ctx context.Context, username string) (int64, er
 	return count, err
 }
 
-const createSesion = `-- name: CreateSesion :one
+const createSession = `-- name: CreateSession :one
 INSERT INTO sessions (
   id,
   username,
@@ -61,7 +61,7 @@ INSERT INTO sessions (
 ) RETURNING id, username, refresh_token, user_agent, client_ip, is_blocked, created_at, expires_at
 `
 
-type CreateSesionParams struct {
+type CreateSessionParams struct {
 	ID           uuid.UUID `json:"id"`
 	Username     string    `json:"username"`
 	RefreshToken string    `json:"refresh_token"`
@@ -71,8 +71,8 @@ type CreateSesionParams struct {
 	ExpiresAt    time.Time `json:"expires_at"`
 }
 
-func (q *Queries) CreateSesion(ctx context.Context, arg CreateSesionParams) (Session, error) {
-	row := q.db.QueryRowContext(ctx, createSesion,
+func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error) {
+	row := q.db.QueryRowContext(ctx, createSession,
 		arg.ID,
 		arg.Username,
 		arg.RefreshToken,
