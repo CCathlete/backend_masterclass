@@ -20,6 +20,8 @@ create index sessions_created_at_idx on sessions (created_at);
 
 create index sessions_username_expires_at_idx on sessions (username, expires_at);
 
+create index sessions_username_id_idx on sessions (username, id);
+
 alter table sessions
 add foreign key (username) references users (username) on delete cascade
 ;
