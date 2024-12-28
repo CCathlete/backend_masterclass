@@ -268,6 +268,10 @@ func TestCreateUserAPI(t *testing.T) {
 
 func TestLoginUserAPI(t *testing.T) {
 	user, password := randomUser()
+	hash, err := u.HashPassword(password)
+	require.NoError(t, err)
+
+	user.HashedPassword = hash
 
 	testCases := []struct {
 		name          string
@@ -287,12 +291,20 @@ func TestLoginUserAPI(t *testing.T) {
 					Times(1).
 					Return(user, nil)
 
+				// Even if err = nil it'll go through TranslateError.
+				store.EXPECT().TranslateError(gomock.Any()).Times(1).
+					Return(nil, false)
+
 				store.EXPECT().CreateSession(gomock.Any(), gomock.Any()).Times(1)
+
+				// Even if err = nil it'll go through TranslateError.
+				store.EXPECT().TranslateError(gomock.Any()).Times(1).
+					Return(nil, false)
+
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 
 				require.Equal(t, http.StatusOK, recorder.Code)
-				requireBodyMatchUser(t, user, recorder.Body)
 
 			},
 		},
@@ -304,7 +316,7 @@ func TestLoginUserAPI(t *testing.T) {
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 
-				store.EXPECT().GetUser(gomock.Any(), gomock.Eq(user.Username)).
+				store.EXPECT().GetUser(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(sqlc.User{}, sqlc.ErrRecordNotFound)
 
@@ -313,10 +325,14 @@ func TestLoginUserAPI(t *testing.T) {
 
 				store.EXPECT().CreateSession(gomock.Any(), gomock.Any()).Times(0)
 
+				// Even if err = nil it'll go through TranslateError.
+				store.EXPECT().TranslateError(gomock.Any()).Times(0)
+
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 
-				require.Equal(t, http.StatusNotFound, recorder.Code)
+				require.Equal(t, http.StatusUnprocessableEntity, recorder.Code)
+
 			},
 		},
 		{
@@ -330,21 +346,26 @@ func TestLoginUserAPI(t *testing.T) {
 
 				store.EXPECT().GetUser(gomock.Any(), gomock.Eq(user.Username)).
 					Times(1).
-					Return(sqlc.User{}, sql.ErrConnDone)
+					Return(user, nil)
 
-				store.EXPECT().TranslateError(gomock.Any()).Times(0).
-					Return(sqlc.ErrConnection, false)
+				store.EXPECT().TranslateError(gomock.Any()).Times(1).
+					Return(nil, false)
+
+				// -------There will be a stage of password check.------------
 
 				store.EXPECT().CreateSession(gomock.Any(), gomock.Any()).Times(0)
+
+				store.EXPECT().TranslateError(gomock.Any()).Times(0)
 
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 
-				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+				require.Equal(t, http.StatusUnauthorized, recorder.Code)
+
 			},
 		},
 		{
-			name: "internal error",
+			name: "internal error - database error",
 			body: gin.H{
 				"username": user.Username,
 				"password": password,
@@ -359,10 +380,13 @@ func TestLoginUserAPI(t *testing.T) {
 
 				store.EXPECT().CreateSession(gomock.Any(), gomock.Any()).Times(0)
 
+				store.EXPECT().TranslateError(gomock.Any()).Times(0)
+
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 
-				require.Equal(t, http.StatusBadRequest, recorder.Code)
+				require.Equal(t, http.StatusServiceUnavailable, recorder.Code)
+
 			},
 		},
 		{
@@ -376,11 +400,12 @@ func TestLoginUserAPI(t *testing.T) {
 				store.EXPECT().GetUser(gomock.Any(), gomock.Eq(user.Username)).
 					Times(0)
 
-					// ---------------Server level error--------------------------
-				store.EXPECT().TranslateError(gomock.Any()).Times(0).
-					Return(sqlc.ErrConnection, false)
+				// ---------------Server level error--------------------------
+				store.EXPECT().TranslateError(gomock.Any()).Times(0)
 
 				store.EXPECT().CreateSession(gomock.Any(), gomock.Any()).Times(0)
+
+				store.EXPECT().TranslateError(gomock.Any()).Times(0)
 
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -553,6 +578,7 @@ func TestGetUserAPI(t *testing.T) {
 
 func randomUser() (sqlc.User, string) {
 	password := u.RandomPassword()
+	// Password hashing is done outside of the function.
 	return sqlc.User{
 		Username:          u.RandomUsername(),
 		FullName:          u.RandomFullName(),

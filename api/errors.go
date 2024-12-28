@@ -16,7 +16,7 @@ func handleError(server *Server, ctx *gin.Context, err error) {
 			return
 
 		} else if errors.Is(trErr, sqlc.ErrConnection) {
-			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			ctx.JSON(http.StatusServiceUnavailable, errorResponse(err))
 			return
 		}
 
