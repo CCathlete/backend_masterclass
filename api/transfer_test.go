@@ -170,22 +170,36 @@ func TestTransferAPI(t *testing.T) {
 					GetAccount(gomock.Any(), gomock.Eq(account1.ID)).
 					Times(1).
 					Return(sqlc.Account{}, sqlc.ErrRecordNotFound)
+				store.EXPECT().TranslateError(gomock.Any()).Times(1).
+					Return(sqlc.ErrRecordNotFound, true)
+
 				store.EXPECT().
 					GetAccount(gomock.Any(), gomock.Eq(account2.ID)).
 					Times(0)
+				store.EXPECT().TranslateError(gomock.Any()).Times(0)
+
 				store.EXPECT().
 					TransferTx(gomock.Any(), gomock.Any()).
 					Times(0)
+				store.EXPECT().TranslateError(gomock.Any()).Times(0)
 
-				store.EXPECT().TranslateError(gomock.Any()).Times(1).
-					Return(sqlc.ErrRecordNotFound, true)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusNotFound, recorder.Code)
+				require.Equal(t, http.StatusUnprocessableEntity, recorder.Code)
 			},
 		},
 		{
 			name: "to account not found",
+			setupAuth: func(
+				t *testing.T,
+				request *http.Request,
+				tokenMaker token.Maker,
+				authorizationType string,
+				username string,
+				duration time.Duration,
+			) {
+				addAuthorisation(t, request, tokenMaker, authorizationType, user1.Username, duration)
+			},
 			body: gin.H{
 				"from_account_id": account1.ID,
 				"to_account_id":   account2.ID,
@@ -198,23 +212,38 @@ func TestTransferAPI(t *testing.T) {
 					GetAccount(gomock.Any(), gomock.Eq(account1.ID)).
 					Times(1).
 					Return(account1, nil)
+				store.EXPECT().TranslateError(gomock.Any()).Times(1).
+					Return(nil, false)
+
 				store.EXPECT().
 					GetAccount(gomock.Any(), gomock.Eq(account2.ID)).
 					Times(1).
 					Return(sqlc.Account{}, sqlc.ErrRecordNotFound)
+				store.EXPECT().TranslateError(gomock.Any()).Times(1).
+					Return(sqlc.ErrRecordNotFound, true)
+
 				store.EXPECT().
 					TransferTx(gomock.Any(), gomock.Any()).
 					Times(0)
+				store.EXPECT().TranslateError(gomock.Any()).Times(0)
 
-				store.EXPECT().TranslateError(gomock.Any()).Times(1).
-					Return(sqlc.ErrRecordNotFound, true)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusNotFound, recorder.Code)
+				require.Equal(t, http.StatusUnprocessableEntity, recorder.Code)
 			},
 		},
 		{
 			name: "from account currency mismatch",
+			setupAuth: func(
+				t *testing.T,
+				request *http.Request,
+				tokenMaker token.Maker,
+				authorizationType string,
+				username string,
+				duration time.Duration,
+			) {
+				addAuthorisation(t, request, tokenMaker, authorizationType, user1.Username, duration)
+			},
 			body: gin.H{
 				"from_account_id": account3.ID,
 				"to_account_id":   account2.ID,
@@ -244,6 +273,16 @@ func TestTransferAPI(t *testing.T) {
 		},
 		{
 			name: "to account currency mismatch",
+			setupAuth: func(
+				t *testing.T,
+				request *http.Request,
+				tokenMaker token.Maker,
+				authorizationType string,
+				username string,
+				duration time.Duration,
+			) {
+				addAuthorisation(t, request, tokenMaker, authorizationType, user1.Username, duration)
+			},
 			body: gin.H{
 				"from_account_id": account1.ID,
 				"to_account_id":   account3.ID,
@@ -272,6 +311,16 @@ func TestTransferAPI(t *testing.T) {
 		},
 		{
 			name: "invalid currency",
+			setupAuth: func(
+				t *testing.T,
+				request *http.Request,
+				tokenMaker token.Maker,
+				authorizationType string,
+				username string,
+				duration time.Duration,
+			) {
+				addAuthorisation(t, request, tokenMaker, authorizationType, user1.Username, duration)
+			},
 			body: gin.H{
 				"from_account_id": account1.ID,
 				"to_account_id":   account2.ID,
@@ -298,6 +347,16 @@ func TestTransferAPI(t *testing.T) {
 		},
 		{
 			name: "negative amount",
+			setupAuth: func(
+				t *testing.T,
+				request *http.Request,
+				tokenMaker token.Maker,
+				authorizationType string,
+				username string,
+				duration time.Duration,
+			) {
+				addAuthorisation(t, request, tokenMaker, authorizationType, user1.Username, duration)
+			},
 			body: gin.H{
 				"from_account_id": account1.ID,
 				"to_account_id":   account2.ID,
@@ -324,6 +383,16 @@ func TestTransferAPI(t *testing.T) {
 		},
 		{
 			name: "GetAccount error",
+			setupAuth: func(
+				t *testing.T,
+				request *http.Request,
+				tokenMaker token.Maker,
+				authorizationType string,
+				username string,
+				duration time.Duration,
+			) {
+				addAuthorisation(t, request, tokenMaker, authorizationType, user1.Username, duration)
+			},
 			body: gin.H{
 				"from_account_id": account1.ID,
 				"to_account_id":   account2.ID,
@@ -349,6 +418,16 @@ func TestTransferAPI(t *testing.T) {
 		},
 		{
 			name: "TransferTx error",
+			setupAuth: func(
+				t *testing.T,
+				request *http.Request,
+				tokenMaker token.Maker,
+				authorizationType string,
+				username string,
+				duration time.Duration,
+			) {
+				addAuthorisation(t, request, tokenMaker, authorizationType, user1.Username, duration)
+			},
 			body: gin.H{
 				"from_account_id": account1.ID,
 				"to_account_id":   account2.ID,
