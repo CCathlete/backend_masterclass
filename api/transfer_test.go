@@ -432,6 +432,8 @@ func requireBodyMatchTransferResult(t *testing.T,
 	require.Equal(
 		t, gotResult.Transfer.Currency, transferResult.Transfer.Currency,
 	)
+	require.WithinDuration(t, gotResult.Transfer.CreatedAt,
+		transferResult.Transfer.CreatedAt, time.Second)
 
 	// --------------------Comparing accounts-----------------------------
 	require.Equal(
@@ -442,6 +444,8 @@ func requireBodyMatchTransferResult(t *testing.T,
 		t, gotResult.FromAccount.Balance, transferResult.FromAccount.Balance)
 	require.Equal(
 		t, gotResult.FromAccount.Currency, transferResult.FromAccount.Currency)
+	require.WithinDuration(t, gotResult.FromAccount.CreatedAt,
+		transferResult.FromAccount.CreatedAt, time.Second)
 
 	require.Equal(
 		t, gotResult.ToAccount.ID, transferResult.ToAccount.ID)
@@ -451,6 +455,8 @@ func requireBodyMatchTransferResult(t *testing.T,
 		t, gotResult.ToAccount.Balance, transferResult.ToAccount.Balance)
 	require.Equal(
 		t, gotResult.ToAccount.Currency, transferResult.ToAccount.Currency)
+	require.WithinDuration(t, gotResult.ToAccount.CreatedAt,
+		transferResult.ToAccount.CreatedAt, time.Second)
 
 	// --------------------Comparing entries-----------------------------
 	require.Equal(
@@ -463,6 +469,8 @@ func requireBodyMatchTransferResult(t *testing.T,
 		t, gotResult.FromEntry.Amount, transferResult.FromEntry.Amount)
 	require.Equal(
 		t, gotResult.FromEntry.Currency, transferResult.FromEntry.Currency)
+	require.WithinDuration(t, gotResult.FromEntry.CreatedAt,
+		transferResult.FromEntry.CreatedAt, time.Second)
 
 	require.Equal(
 		t, gotResult.ToEntry.ID, transferResult.ToEntry.ID)
@@ -473,6 +481,7 @@ func requireBodyMatchTransferResult(t *testing.T,
 	require.Equal(
 		t, gotResult.ToEntry.Amount, transferResult.ToEntry.Amount)
 	require.Equal(
-		t, gotResult.ToEntry.Currency, transferResult.ToEntry.Currency,
-	)
+		t, gotResult.ToEntry.Currency, transferResult.ToEntry.Currency)
+	require.WithinDuration(t, gotResult.ToEntry.CreatedAt,
+		transferResult.ToEntry.CreatedAt, time.Second)
 }
