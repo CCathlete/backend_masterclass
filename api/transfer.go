@@ -39,13 +39,13 @@ func (server *Server) createTransfer(ctx *gin.Context) {
 	}
 
 	// After we validated the transfer parameters, we can proceed with the transfer.
-	transfer, err := server.Store.TransferTx(ctx, arg)
+	transferResult, err := server.Store.TransferTx(ctx, arg)
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
 		handleError(ctx, trErr)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, transfer)
+	ctx.JSON(http.StatusOK, transferResult)
 }
 
 // ------------------------------------------------------------------- //

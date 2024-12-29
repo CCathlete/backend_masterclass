@@ -19,6 +19,42 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
+func createReturnedResult(
+	account1ID,
+	account2ID,
+	amount int64,
+) (returnedResult sqlc.TransferTxResult) {
+
+	returnedTransfer := sqlc.Transfer{
+		ID:            1,
+		FromAccountID: account1ID,
+		ToAccountID:   account2ID,
+		Amount:        amount,
+		Currency:      u.USD,
+		CreatedAt:     time.Now(),
+	}
+
+	returnedResult = sqlc.TransferTxResult{
+		Transfer: returnedTransfer,
+		FromEntry: sqlc.Entry{
+			ID:        1,
+			AccountID: account1ID,
+			Amount:    -amount,
+			Currency:  u.USD,
+			CreatedAt: time.Now(),
+		},
+		ToEntry: sqlc.Entry{
+			ID:        2,
+			AccountID: account2ID,
+			Amount:    amount,
+			Currency:  u.USD,
+			CreatedAt: time.Now(),
+		},
+	}
+
+	return
+}
+
 // TODO: Add authorisation to every test case and call it in the loop.
 
 func TestTransferAPI(t *testing.T) {
@@ -91,9 +127,11 @@ func TestTransferAPI(t *testing.T) {
 					Amount:        amount,
 					Currency:      u.USD,
 				}
+
 				store.EXPECT().
 					TransferTx(gomock.Any(), gomock.Eq(arg)).
-					Times(1)
+					Times(1).Return(
+					createReturnedResult(account1.ID, account2.ID, amount), nil)
 
 				store.EXPECT().TranslateError(gomock.Any()).Times(1).
 					Return(nil, false)
@@ -101,12 +139,11 @@ func TestTransferAPI(t *testing.T) {
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusOK, recorder.Code)
-				requireBodyMatchTransfer(t, recorder.Body, sqlc.Transfer{
-					FromAccountID: account1.ID,
-					ToAccountID:   account2.ID,
-					Amount:        amount,
-					Currency:      u.USD,
-				})
+				requireBodyMatchTransferResult(
+					t,
+					recorder.Body,
+					createReturnedResult(account1.ID, account2.ID, amount),
+				)
 			},
 		},
 		{
@@ -373,15 +410,15 @@ func TestTransferAPI(t *testing.T) {
 
 }
 
-func requireBodyMatchTransfer(t *testing.T,
+func requireBodyMatchTransferResult(t *testing.T,
 	body *bytes.Buffer,
-	transfer sqlc.Transfer,
+	transferResult sqlc.TransferTxResult,
 ) {
-	var gotTransfer sqlc.Transfer
+	var gotResult sqlc.TransferTxResult
 	data, err := io.ReadAll(body)
 	require.NoError(t, err)
 
-	err = json.Unmarshal(data, &gotTransfer)
+	err = json.Unmarshal(data, &gotResult)
 	require.NoError(t, err)
-	require.Equal(t, transfer, gotTransfer)
+	require.Equal(t, transferResult, gotResult)
 }
