@@ -247,6 +247,8 @@ func TestGetAccountAPI(t *testing.T) {
 				store.EXPECT().GetAccount(gomock.Any(), gomock.Eq(account.ID)).
 					Times(1).
 					Return(account, nil)
+				store.EXPECT().TranslateError(gomock.Any()).Times(1).
+					Return(nil, false)
 
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -280,7 +282,7 @@ func TestGetAccountAPI(t *testing.T) {
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 
-				require.Equal(t, http.StatusNotFound, recorder.Code)
+				require.Equal(t, http.StatusUnprocessableEntity, recorder.Code)
 			},
 		},
 		{
@@ -308,7 +310,7 @@ func TestGetAccountAPI(t *testing.T) {
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 
-				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+				require.Equal(t, http.StatusServiceUnavailable, recorder.Code)
 			},
 		},
 		{
@@ -432,6 +434,9 @@ func TestListAccountsAPI(t *testing.T) {
 					ListAccounts(gomock.Any(), gomock.Eq(args)).
 					Times(1).
 					Return(accounts, nil)
+				store.EXPECT().TranslateError(gomock.Any()).Times(1).
+					Return(nil, false)
+
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusOK, recorder.Code)
@@ -490,7 +495,7 @@ func TestListAccountsAPI(t *testing.T) {
 					Return(sqlc.ErrConnection, true)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+				require.Equal(t, http.StatusServiceUnavailable, recorder.Code)
 			},
 		},
 		{
