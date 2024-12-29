@@ -178,6 +178,9 @@ func TestCreateUserAPI(t *testing.T) {
 				store.EXPECT().CreateUser(gomock.Any(), gomock.Any()).
 					Times(0)
 
+				// ------No TranslateError since it's server level.-------------
+				store.EXPECT().TranslateError(gomock.Any()).Times(0)
+
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 
@@ -199,6 +202,7 @@ func TestCreateUserAPI(t *testing.T) {
 					Times(0)
 
 				// ------No TranslateError since it's server level.-------------
+				store.EXPECT().TranslateError(gomock.Any()).Times(0)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 
@@ -221,6 +225,7 @@ func TestCreateUserAPI(t *testing.T) {
 					Times(0)
 
 				// ------No TranslateError since it's server level.-------------
+				store.EXPECT().TranslateError(gomock.Any()).Times(0)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 
@@ -315,7 +320,7 @@ func TestLoginUserAPI(t *testing.T) {
 		{
 			name: "not found",
 			body: gin.H{
-				"username": "notFound",
+				"username": user.Username,
 				"password": password,
 			},
 			buildStubs: func(store *mockdb.MockStore) {
@@ -479,6 +484,10 @@ func TestGetUserAPI(t *testing.T) {
 					Times(1).
 					Return(user, nil)
 
+				// TranslateError is called even if the error is nil.
+				store.EXPECT().TranslateError(gomock.Any()).Times(1).
+					Return(nil, false)
+
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 
@@ -516,18 +525,18 @@ func TestGetUserAPI(t *testing.T) {
 					Return(sqlc.User{}, sql.ErrConnDone)
 
 				store.EXPECT().TranslateError(gomock.Any()).Times(1).
-					Return(sqlc.ErrConnection, false)
+					Return(sqlc.ErrConnection, true)
 
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 
-				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+				require.Equal(t, http.StatusServiceUnavailable, recorder.Code)
 			},
 		},
 		{
 			// In this case we are simulating a bad request. The user ID is invalid( should be >=1 ). The query should not be activated.
 			name:     "bad request",
-			username: "0##00",
+			username: url.QueryEscape("0##00"),
 			buildStubs: func(store *mockdb.MockStore) {
 
 				// What this means is I expect the GetUser method with any context and any username as the query is to be called 0 times.
@@ -535,6 +544,7 @@ func TestGetUserAPI(t *testing.T) {
 					Times(0)
 
 				// -------No TranslateError since it's server level.------------
+				store.EXPECT().TranslateError(gomock.Any()).Times(0)
 
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
