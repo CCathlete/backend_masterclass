@@ -17,6 +17,10 @@ func handleError(ctx *gin.Context, err error) {
 	} else if errors.Is(err, sqlc.ErrConnection) {
 		ctx.JSON(http.StatusServiceUnavailable, errorResponse(err))
 		return
+
+	} else if errors.Is(err, sqlc.ErrForbiddenInput) {
+		ctx.JSON(http.StatusForbidden, errorResponse(err))
+		return
 	}
 
 	// Any other error.

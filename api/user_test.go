@@ -90,6 +90,10 @@ func TestCreateUserAPI(t *testing.T) {
 					Times(1).
 					Return(user, nil)
 
+				// Even if err = nil it'll go through TranslateError.
+				store.EXPECT().TranslateError(gomock.Any()).Times(1).
+					Return(nil, false)
+
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 
@@ -376,7 +380,7 @@ func TestLoginUserAPI(t *testing.T) {
 					Times(1)
 
 				store.EXPECT().TranslateError(gomock.Any()).Times(1).
-					Return(sqlc.ErrConnection, false)
+					Return(sqlc.ErrConnection, true)
 
 				store.EXPECT().CreateSession(gomock.Any(), gomock.Any()).Times(0)
 
