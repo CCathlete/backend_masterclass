@@ -8,22 +8,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func handleError(server *Server, ctx *gin.Context, err error) {
-	if trErr, notNil := server.Store.TranslateError(err); notNil {
+func handleError(ctx *gin.Context, err error) {
 
-		if errors.Is(err, sqlc.ErrRecordNotFound) {
-			ctx.JSON(http.StatusUnprocessableEntity, errorResponse(err))
-			return
+	if errors.Is(err, sqlc.ErrRecordNotFound) {
+		ctx.JSON(http.StatusUnprocessableEntity, errorResponse(err))
+		return
 
-		} else if errors.Is(trErr, sqlc.ErrConnection) {
-			ctx.JSON(http.StatusServiceUnavailable, errorResponse(err))
-			return
-		}
-
-		// Any other error.
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+	} else if errors.Is(err, sqlc.ErrConnection) {
+		ctx.JSON(http.StatusServiceUnavailable, errorResponse(err))
 		return
 	}
+
+	// Any other error.
+	ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 }
 
 func errorResponse(err error) (resBody gin.H) {

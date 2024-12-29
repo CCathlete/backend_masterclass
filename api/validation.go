@@ -33,7 +33,7 @@ func (s *Server) validAccount(ctx *gin.Context, accountID int64,
 
 	account, err := s.Store.GetAccount(ctx, accountID)
 	if trErr, notNil := s.Store.TranslateError(err); notNil {
-		handleError(s, ctx, trErr)
+		handleError(ctx, trErr)
 		return
 	}
 
@@ -55,7 +55,7 @@ func (s *Server) validAccountTransfer(ctx *gin.Context, accountID int64,
 
 	account, err := s.Store.GetAccount(ctx, accountID)
 	if trErr, notNil := s.Store.TranslateError(err); notNil {
-		handleError(s, ctx, trErr)
+		handleError(ctx, trErr)
 		return
 	}
 	if account.Currency != transferCurrency {

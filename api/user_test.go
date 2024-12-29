@@ -311,7 +311,7 @@ func TestLoginUserAPI(t *testing.T) {
 		{
 			name: "not found",
 			body: gin.H{
-				"username": "not found",
+				"username": "notFound",
 				"password": password,
 			},
 			buildStubs: func(store *mockdb.MockStore) {

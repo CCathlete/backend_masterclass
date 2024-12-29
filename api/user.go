@@ -58,7 +58,7 @@ func (server *Server) createUser(ctx *gin.Context) {
 
 	user, err := server.Store.CreateUser(ctx, arg)
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
-		handleError(server, ctx, trErr)
+		handleError(ctx, trErr)
 		return
 	}
 
@@ -80,7 +80,7 @@ func (server *Server) getUser(ctx *gin.Context) {
 
 	user, err := server.Store.GetUser(ctx, req.Username)
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
-		handleError(server, ctx, trErr)
+		handleError(ctx, trErr)
 		return
 	}
 
@@ -101,13 +101,13 @@ func (server *Server) deleteUser(ctx *gin.Context) {
 
 	user, err := server.Store.GetUser(ctx, req.Username)
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
-		handleError(server, ctx, trErr)
+		handleError(ctx, trErr)
 		return
 	}
 
 	err = server.Store.DeleteUser(ctx, req.Username)
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
-		handleError(server, ctx, trErr)
+		handleError(ctx, trErr)
 		return
 	}
 
@@ -141,7 +141,7 @@ func (server *Server) listUsers(ctx *gin.Context) {
 
 	users, err := server.Store.ListUsers(ctx, arg)
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
-		handleError(server, ctx, trErr)
+		handleError(ctx, trErr)
 		return
 	}
 
@@ -168,13 +168,13 @@ func (server *Server) updateUser(ctx *gin.Context) {
 
 	userBefore, err := server.Store.GetUser(ctx, req.Username)
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
-		handleError(server, ctx, trErr)
+		handleError(ctx, trErr)
 		return
 	}
 
 	userAfter, err := server.Store.UpdateUser(ctx, arg)
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
-		handleError(server, ctx, trErr)
+		handleError(ctx, trErr)
 		return
 	}
 
@@ -212,7 +212,7 @@ func (server *Server) loginUser(ctx *gin.Context) {
 	// ---------Checking if the user exists in the database.--------------
 	user, err := server.Store.GetUser(ctx, req.Username)
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
-		handleError(server, ctx, trErr)
+		handleError(ctx, trErr)
 		return
 	}
 
@@ -254,7 +254,7 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		ExpiresAt:    refreshPayload.ExpiresAt,
 	})
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
-		handleError(server, ctx, trErr)
+		handleError(ctx, trErr)
 		return
 	}
 	log.Println("Created session:", session)

@@ -41,7 +41,7 @@ func (server *Server) createTransfer(ctx *gin.Context) {
 	// After we validated the transfer parameters, we can proceed with the transfer.
 	transfer, err := server.Store.TransferTx(ctx, arg)
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
-		handleError(server, ctx, trErr)
+		handleError(ctx, trErr)
 		return
 	}
 
@@ -62,7 +62,7 @@ func (server *Server) getTransfer(ctx *gin.Context) {
 
 	transfer, err := server.Store.GetTransfer(ctx, req.ID)
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
-		handleError(server, ctx, trErr)
+		handleError(ctx, trErr)
 		return
 	}
 
@@ -106,7 +106,7 @@ func (server *Server) listTransfers(ctx *gin.Context) {
 
 	transfers, err := server.Store.ListTransfers(ctx, arg)
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
-		handleError(server, ctx, trErr)
+		handleError(ctx, trErr)
 		return
 	}
 
@@ -135,7 +135,7 @@ func (server *Server) getTransfersFromAccount(ctx *gin.Context) {
 	// -----------------Getting the transfers.----------------------------
 	transfers, err := server.Store.GetTransfersFrom(ctx, req.AccountID)
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
-		handleError(server, ctx, trErr)
+		handleError(ctx, trErr)
 		return
 	}
 
@@ -161,7 +161,7 @@ func (server *Server) deleteTransfer(ctx *gin.Context) {
 
 	transfer, err := server.Store.GetTransfer(ctx, req.ID)
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
-		handleError(server, ctx, trErr)
+		handleError(ctx, trErr)
 		return
 	}
 
@@ -175,7 +175,7 @@ func (server *Server) deleteTransfer(ctx *gin.Context) {
 
 	err = server.Store.DeleteTransfer(ctx, req.ID)
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
-		handleError(server, ctx, trErr)
+		handleError(ctx, trErr)
 		return
 	}
 
@@ -203,7 +203,7 @@ func (server *Server) updateTransfer(ctx *gin.Context) {
 
 	transferBefore, err := server.Store.GetTransfer(ctx, req.ID)
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
-		handleError(server, ctx, trErr)
+		handleError(ctx, trErr)
 		return
 	}
 
@@ -216,7 +216,7 @@ func (server *Server) updateTransfer(ctx *gin.Context) {
 
 	transferAfter, err := server.Store.UpdateTransfer(ctx, arg)
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
-		handleError(server, ctx, trErr)
+		handleError(ctx, trErr)
 		return
 	}
 

@@ -108,7 +108,7 @@ func (server *Server) getAccountForUpdate(ctx *gin.Context) {
 
 	account, err := server.Store.GetAccountForUpdate(ctx, req.ID)
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
-		handleError(server, ctx, trErr)
+		handleError(ctx, trErr)
 		return
 	}
 
@@ -154,7 +154,7 @@ func (server *Server) listAccounts(ctx *gin.Context) {
 
 	accounts, err := server.Store.ListAccounts(ctx, arg)
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
-		handleError(server, ctx, trErr)
+		handleError(ctx, trErr)
 		return
 	}
 
@@ -181,7 +181,7 @@ func (server *Server) deleteAccount(ctx *gin.Context) {
 
 	err := server.Store.DeleteAccount(ctx, req.ID)
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
-		handleError(server, ctx, trErr)
+		handleError(ctx, trErr)
 		return
 	}
 
@@ -216,7 +216,7 @@ func (server *Server) updateAccountBalance(ctx *gin.Context) {
 
 	accountAfter, err := server.Store.UpdateAccountBalance(ctx, arg)
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
-		handleError(server, ctx, trErr)
+		handleError(ctx, trErr)
 		return
 	}
 
@@ -251,13 +251,13 @@ func (server *Server) updateAccountBalance(ctx *gin.Context) {
 
 // 	accountBefore, err := server.Store.GetAccount(ctx, req.ID)
 // 	if trErr, notNil := server.Store.TranslateError(err); notNil {
-// 		handleError(server, ctx, trErr)
+// 		handleError(ctx, trErr)
 // return
 // 	}
 
 // 	accountAfter, err := server.Store.UpdateAccount(ctx, arg)
 // 	if trErr, notNil := server.Store.TranslateError(err); notNil {
-// 		handleError(server, ctx, trErr)
+// 		handleError(ctx, trErr)
 // return
 // 	}
 
