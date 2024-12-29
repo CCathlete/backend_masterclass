@@ -59,7 +59,9 @@ func (s *Server) validAccountTransfer(ctx *gin.Context, accountID int64,
 		return
 	}
 	if account.Currency != transferCurrency {
-		log.Printf("Account ID (%d) currency (%s) is different from the transfer's currency (%s).\n", accountID, account.Currency, transferCurrency)
+		err = fmt.Errorf("account ID (%d) currency (%s) is different from the transfer's currency (%s)", accountID, account.Currency, transferCurrency)
+		log.Println(err.Error() + ".")
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 

@@ -256,16 +256,21 @@ func TestTransferAPI(t *testing.T) {
 					GetAccount(gomock.Any(), gomock.Eq(account3.ID)).
 					Times(1).
 					Return(account3, nil)
+				store.EXPECT().TranslateError(gomock.Any()).Times(1).
+					Return(nil, false)
+
 				// The to account is never checked because the from account has a currency mismatch.
 				store.EXPECT().
 					GetAccount(gomock.Any(), gomock.Eq(account2.ID)).
 					Times(0).
 					Return(account2, nil)
+				store.EXPECT().TranslateError(gomock.Any()).Times(0)
+
 				store.EXPECT().
 					TransferTx(gomock.Any(), gomock.Any()).
 					Times(0)
+				store.EXPECT().TranslateError(gomock.Any()).Times(0)
 
-				// --------No TranslateError since it's server level------------
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusBadRequest, recorder.Code)
@@ -295,15 +300,21 @@ func TestTransferAPI(t *testing.T) {
 					GetAccount(gomock.Any(), gomock.Eq(account1.ID)).
 					Times(1).
 					Return(account1, nil)
+				store.EXPECT().TranslateError(gomock.Any()).Times(1).
+					Return(nil, false)
+
 				store.EXPECT().
 					GetAccount(gomock.Any(), gomock.Eq(account3.ID)).
 					Times(1).
 					Return(account3, nil)
+				store.EXPECT().TranslateError(gomock.Any()).Times(1).
+					Return(nil, false)
+
 				store.EXPECT().
 					TransferTx(gomock.Any(), gomock.Any()).
 					Times(0)
+				store.EXPECT().TranslateError(gomock.Any()).Times(0)
 
-				// --------No TranslateError since it's server level------------
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusBadRequest, recorder.Code)
@@ -332,12 +343,17 @@ func TestTransferAPI(t *testing.T) {
 				store.EXPECT().
 					GetAccount(gomock.Any(), gomock.Eq(account1.ID)).
 					Times(0)
+				store.EXPECT().TranslateError(gomock.Any()).Times(0)
+
 				store.EXPECT().
 					GetAccount(gomock.Any(), gomock.Eq(account2.ID)).
 					Times(0)
+				store.EXPECT().TranslateError(gomock.Any()).Times(0)
+
 				store.EXPECT().
 					TransferTx(gomock.Any(), gomock.Any()).
 					Times(0)
+				store.EXPECT().TranslateError(gomock.Any()).Times(0)
 
 				// --------No TranslateError since it's server level------------
 			},
@@ -368,12 +384,17 @@ func TestTransferAPI(t *testing.T) {
 				store.EXPECT().
 					GetAccount(gomock.Any(), gomock.Eq(account1.ID)).
 					Times(0)
+				store.EXPECT().TranslateError(gomock.Any()).Times(0)
+
 				store.EXPECT().
 					GetAccount(gomock.Any(), gomock.Eq(account2.ID)).
 					Times(0)
+				store.EXPECT().TranslateError(gomock.Any()).Times(0)
+
 				store.EXPECT().
 					TransferTx(gomock.Any(), gomock.Any()).
 					Times(0)
+				store.EXPECT().TranslateError(gomock.Any()).Times(0)
 
 				// --------No TranslateError since it's server level------------
 			},
@@ -403,17 +424,24 @@ func TestTransferAPI(t *testing.T) {
 				// We simulate an internal error in the database. We won't get the second account because the validation function stops at the error it encounters.
 				store.EXPECT().
 					GetAccount(gomock.Any(), gomock.Eq(account1.ID)).
-					Times(0).
+					Times(1).
 					Return(sqlc.Account{}, sql.ErrConnDone)
+				store.EXPECT().TranslateError(gomock.Any()).Times(1).
+					Return(sqlc.ErrConnection, true)
+
+				store.EXPECT().
+					GetAccount(gomock.Any(), gomock.Eq(account2.ID)).
+					Times(0)
+				store.EXPECT().TranslateError(gomock.Any()).Times(0)
+
 				store.EXPECT().
 					TransferTx(gomock.Any(), gomock.Any()).
 					Times(0)
+				store.EXPECT().TranslateError(gomock.Any()).Times(0)
 
-				store.EXPECT().TranslateError(gomock.Any()).Times(1).
-					Return(sqlc.ErrRecordNotFound, true)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+				require.Equal(t, http.StatusServiceUnavailable, recorder.Code)
 			},
 		},
 		{
