@@ -468,14 +468,23 @@ func TestTransferAPI(t *testing.T) {
 					GetAccount(gomock.Any(), gomock.Eq(account1.ID)).
 					Times(1).
 					Return(account1, nil)
+				store.EXPECT().TranslateError(gomock.Any()).Times(1).
+					Return(nil, false)
+
 				store.EXPECT().
 					GetAccount(gomock.Any(), gomock.Eq(account2.ID)).
 					Times(1).
 					Return(account2, nil)
+				store.EXPECT().TranslateError(gomock.Any()).Times(1).
+					Return(nil, false)
+
 				store.EXPECT().
 					TransferTx(gomock.Any(), gomock.Any()).
 					Times(1).
-					Return(sqlc.Transfer{}, sql.ErrTxDone)
+					Return(sqlc.TransferTxResult{}, sql.ErrTxDone)
+				store.EXPECT().TranslateError(gomock.Any()).Times(1).
+					Return(sql.ErrTxDone, true)
+
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusInternalServerError, recorder.Code)
