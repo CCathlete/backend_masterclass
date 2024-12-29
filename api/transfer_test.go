@@ -420,5 +420,59 @@ func requireBodyMatchTransferResult(t *testing.T,
 
 	err = json.Unmarshal(data, &gotResult)
 	require.NoError(t, err)
-	require.Equal(t, transferResult, gotResult)
+	// --------------------Comparing transfers----------------------------
+	require.Equal(
+		t, gotResult.Transfer.ID, transferResult.Transfer.ID)
+	require.Equal(
+		t, gotResult.Transfer.Amount, transferResult.Transfer.Amount)
+	require.Equal(
+		t, gotResult.Transfer.FromAccountID, transferResult.Transfer.FromAccountID)
+	require.Equal(
+		t, gotResult.Transfer.ToAccountID, transferResult.Transfer.ToAccountID)
+	require.Equal(
+		t, gotResult.Transfer.Currency, transferResult.Transfer.Currency,
+	)
+
+	// --------------------Comparing accounts-----------------------------
+	require.Equal(
+		t, gotResult.FromAccount.ID, transferResult.FromAccount.ID)
+	require.Equal(
+		t, gotResult.FromAccount.Owner, transferResult.FromAccount.Owner)
+	require.Equal(
+		t, gotResult.FromAccount.Balance, transferResult.FromAccount.Balance)
+	require.Equal(
+		t, gotResult.FromAccount.Currency, transferResult.FromAccount.Currency)
+
+	require.Equal(
+		t, gotResult.ToAccount.ID, transferResult.ToAccount.ID)
+	require.Equal(
+		t, gotResult.ToAccount.Owner, transferResult.ToAccount.Owner)
+	require.Equal(
+		t, gotResult.ToAccount.Balance, transferResult.ToAccount.Balance)
+	require.Equal(
+		t, gotResult.ToAccount.Currency, transferResult.ToAccount.Currency)
+
+	// --------------------Comparing entries-----------------------------
+	require.Equal(
+		t, gotResult.FromEntry.ID, transferResult.FromEntry.ID)
+	require.Equal(
+		t, gotResult.FromEntry.AccountID, transferResult.FromEntry.AccountID)
+	require.Equal(
+		t, gotResult.FromEntry.AccountID, transferResult.FromEntry.AccountID)
+	require.Equal(
+		t, gotResult.FromEntry.Amount, transferResult.FromEntry.Amount)
+	require.Equal(
+		t, gotResult.FromEntry.Currency, transferResult.FromEntry.Currency)
+
+	require.Equal(
+		t, gotResult.ToEntry.ID, transferResult.ToEntry.ID)
+	require.Equal(
+		t, gotResult.ToEntry.AccountID, transferResult.ToEntry.AccountID)
+	require.Equal(
+		t, gotResult.ToEntry.AccountID, transferResult.ToEntry.AccountID)
+	require.Equal(
+		t, gotResult.ToEntry.Amount, transferResult.ToEntry.Amount)
+	require.Equal(
+		t, gotResult.ToEntry.Currency, transferResult.ToEntry.Currency,
+	)
 }
