@@ -90,6 +90,8 @@ func TestCreateAccountAPI(t *testing.T) {
 					})).
 					Times(1).
 					Return(account, nil)
+				store.EXPECT().TranslateError(gomock.Any()).Times(1).
+					Return(nil, false)
 
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -127,14 +129,12 @@ func TestCreateAccountAPI(t *testing.T) {
 				store.EXPECT().CreateAccount(gomock.Any(), gomock.Eq(arg)).
 					Times(1).
 					Return(sqlc.Account{}, sqlc.ErrConnection)
-
 				store.EXPECT().TranslateError(gomock.Any()).Times(1).
 					Return(sqlc.ErrConnection, true)
 
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
-
-				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+				require.Equal(t, http.StatusServiceUnavailable, recorder.Code)
 			},
 		},
 		{
@@ -159,6 +159,7 @@ func TestCreateAccountAPI(t *testing.T) {
 				// What this means is I expect the GetAccount method with any context and any account ID as the query id to be called 0 times.
 				store.EXPECT().CreateAccount(gomock.Any(), gomock.Any()).
 					Times(0)
+				store.EXPECT().TranslateError(gomock.Any()).Times(0)
 
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {

@@ -3,7 +3,6 @@ package api
 import (
 	"backend-masterclass/db/sqlc"
 	"backend-masterclass/token"
-	"errors"
 	"fmt"
 	"net/http"
 
@@ -33,18 +32,7 @@ func (server *Server) createAccount(ctx *gin.Context) {
 
 	account, err := server.Store.CreateAccount(ctx, arg)
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
-
-		if errors.Is(trErr, sqlc.ErrForbiddenInput) {
-			ctx.JSON(http.StatusForbidden, errorResponse(err))
-			return
-
-		} else if errors.Is(trErr, sqlc.ErrConnection) {
-			ctx.JSON(http.StatusNotFound, errorResponse(err))
-			return
-		}
-
-		// Any other error.
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		handleError(ctx, trErr)
 		return
 	}
 
@@ -65,18 +53,7 @@ func (server *Server) getAccount(ctx *gin.Context) {
 
 	account, err := server.Store.GetAccount(ctx, req.ID)
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
-
-		if errors.Is(err, sqlc.ErrRecordNotFound) {
-			ctx.JSON(http.StatusUnprocessableEntity, errorResponse(err))
-			return
-
-		} else if errors.Is(trErr, sqlc.ErrConnection) {
-			ctx.JSON(http.StatusNotFound, errorResponse(err))
-			return
-		}
-
-		// Any other error.
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		handleError(ctx, trErr)
 		return
 	}
 
