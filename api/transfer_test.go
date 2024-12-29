@@ -36,13 +36,31 @@ func TestTransferAPI(t *testing.T) {
 	account3.Currency = u.ILS
 
 	testCases := []struct {
-		name          string
+		name      string
+		setupAuth func(
+			t *testing.T,
+			request *http.Request,
+			tokenMaker token.Maker,
+			authorizationType string,
+			username string,
+			duration time.Duration,
+		)
 		body          gin.H
 		buildStubs    func(store *mockdb.MockStore)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			name: "ok",
+			setupAuth: func(
+				t *testing.T,
+				request *http.Request,
+				tokenMaker token.Maker,
+				authorizationType string,
+				username string,
+				duration time.Duration,
+			) {
+				addAuthorisation(t, request, tokenMaker, authorizationType, user1.Username, duration)
+			},
 			body: gin.H{
 				"from_account_id": account1.ID,
 				"to_account_id":   account2.ID,
@@ -54,10 +72,18 @@ func TestTransferAPI(t *testing.T) {
 					GetAccount(gomock.Any(), gomock.Eq(account1.ID)).
 					Times(1).
 					Return(account1, nil)
+
+				// Even if err = nil it'll go through TranslateError.
+				store.EXPECT().TranslateError(gomock.Any()).Times(1).
+					Return(nil, false)
+
 				store.EXPECT().
 					GetAccount(gomock.Any(), gomock.Eq(account2.ID)).
 					Times(1).
 					Return(account2, nil)
+
+				store.EXPECT().TranslateError(gomock.Any()).Times(1).
+					Return(nil, false)
 
 				arg := sqlc.TransferTxParams{
 					FromAccountID: account1.ID,
@@ -68,6 +94,10 @@ func TestTransferAPI(t *testing.T) {
 				store.EXPECT().
 					TransferTx(gomock.Any(), gomock.Eq(arg)).
 					Times(1)
+
+				store.EXPECT().TranslateError(gomock.Any()).Times(1).
+					Return(nil, false)
+
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				require.Equal(t, http.StatusOK, recorder.Code)
@@ -81,6 +111,16 @@ func TestTransferAPI(t *testing.T) {
 		},
 		{
 			name: "from account not found",
+			setupAuth: func(
+				t *testing.T,
+				request *http.Request,
+				tokenMaker token.Maker,
+				authorizationType string,
+				username string,
+				duration time.Duration,
+			) {
+				addAuthorisation(t, request, tokenMaker, authorizationType, user1.Username, duration)
+			},
 			body: gin.H{
 				"from_account_id": account1.ID,
 				"to_account_id":   account2.ID,
@@ -324,6 +364,8 @@ func TestTransferAPI(t *testing.T) {
 			request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(data)) // We create a new request with the data we created.
 			require.NoError(t, err)
 
+			// user1 is the owner of fromAccount.
+			tc.setupAuth(t, request, tokenMaker, authorisationTypeBearer, user1.Username, time.Minute)
 			server.Router.ServeHTTP(recorder, request)
 			tc.checkResponse(t, recorder)
 		})
