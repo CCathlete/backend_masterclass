@@ -1,0 +1,83 @@
+Table "bank"."accounts" {
+  "id" bigint [pk, not null]
+  "owner" "character varying" [not null]
+  "balance" bigint [not null]
+  "currency" "character varying" [not null]
+  "created_at" timestamp [not null, default: `now()`]
+
+  Indexes {
+    (owner, currency) [unique, name: "accounts_owner_currency_unique"]
+    owner [type: btree, name: "accounts_owner_idx"]
+  }
+}
+
+Table "bank"."entries" {
+  "id" bigint [pk, not null]
+  "account_id" bigint [not null]
+  "amount" bigint [not null, note: 'can be positive or negative']
+  "currency" "character varying" [not null]
+  "created_at" timestamp [not null, default: `now()`]
+
+  Indexes {
+    account_id [type: btree, name: "entries_account_id_idx"]
+  }
+}
+
+Table "bank"."schema_migrations" {
+  "version" bigint [pk, not null]
+  "dirty" boolean [not null]
+}
+
+Table "bank"."sessions" {
+  "id" uuid [pk, not null]
+  "username" "character varying" [not null]
+  "refresh_token" "character varying" [not null]
+  "user_agent" "character varying" [not null]
+  "client_ip" "character varying" [not null]
+  "is_blocked" boolean [not null, default: false]
+  "created_at" timestamp [not null, default: `now()`]
+  "expires_at" timestamp [not null]
+
+  Indexes {
+    created_at [type: btree, name: "sessions_created_at_idx"]
+    expires_at [type: btree, name: "sessions_expires_at_idx"]
+    refresh_token [type: btree, unique, name: "sessions_token_idx"]
+    (username, expires_at) [type: btree, name: "sessions_username_expires_at_idx"]
+    (username, id) [type: btree, name: "sessions_username_id_idx"]
+    username [type: btree, unique, name: "sessions_username_idx"]
+  }
+}
+
+Table "bank"."transfers" {
+  "id" bigint [pk, not null]
+  "from_account_id" bigint [not null]
+  "to_account_id" bigint [not null]
+  "amount" bigint [not null, note: 'absolute value']
+  "currency" "character varying" [not null]
+  "created_at" timestamp [not null, default: `now()`]
+
+  Indexes {
+    from_account_id [type: btree, name: "transfers_from_account_id_idx"]
+    (from_account_id, to_account_id) [type: btree, name: "transfers_from_account_id_to_account_id_idx"]
+    to_account_id [type: btree, name: "transfers_to_account_id_idx"]
+  }
+}
+
+Table "bank"."users" {
+  "username" "character varying" [pk, not null]
+  "hashed_password" "character varying" [not null]
+  "full_name" "character varying" [not null]
+  "email" "character varying" [unique, not null]
+  "password_changed_at" timestamp [not null, default: `'0001-01-01 00:00:00+00'::timestampwithtimezone`]
+  "created_at" timestamp [not null, default: `now()`]
+}
+
+Ref "accounts_owner_fkey":"bank"."users"."username" < "bank"."accounts"."owner"
+
+Ref "entries_account_id_fkey":"bank"."accounts"."id" < "bank"."entries"."account_id" [delete: cascade]
+
+Ref "sessions_username_fkey":"bank"."users"."username" < "bank"."sessions"."username" [delete: cascade]
+
+Ref "transfers_from_account_id_fkey":"bank"."accounts"."id" < "bank"."transfers"."from_account_id" [delete: cascade]
+
+Ref "transfers_to_account_id_fkey":"bank"."accounts"."id" < "bank"."transfers"."to_account_id" [delete: cascade]
