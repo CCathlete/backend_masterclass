@@ -32,6 +32,7 @@ mock:
 	mockgen -destination ./mock/${file_name} -package ${pkg_name}  /home/ccat/Repos/backend_masterclass/db/sqlc ${interfaces}
 
 proto:
+	rm -f ../rpc/*.go
 	protoc --proto_path=.. --go_out=../rpc --go_opt=paths=source_relative \
 	--go-grpc_out=../rpc --go-grpc_opt=paths=source_relative \
 	../proto/*.proto
