@@ -34,9 +34,9 @@ mock:
 
 proto:
 	rm -f ./rpc/*.go
-	protoc --proto_path=. --go_out=rpc --go_opt=paths=source_relative \
+	protoc --proto_path=proto --go_out=rpc --go_opt=paths=source_relative \
 	--go-grpc_out=rpc --go-grpc_opt=paths=source_relative \
-	./proto/*.proto
+	proto/*.proto
 
 # Command aliasing is considered a "phony target" so it's possible to run it repeatedly.
 .PHONY: connect migrateup migratedown sqlc test migraterestart server mock migratedown_1 migrateup_1 proto #dbfile

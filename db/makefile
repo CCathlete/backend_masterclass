@@ -33,7 +33,7 @@ mock:
 
 proto:
 	rm -f ../rpc/*.go
-	protoc --proto_path=.. --go_out=../rpc --go_opt=paths=source_relative \
+	protoc --proto_path=../proto --go_out=../rpc --go_opt=paths=source_relative \
 	--go-grpc_out=../rpc --go-grpc_opt=paths=source_relative \
 	../proto/*.proto
 

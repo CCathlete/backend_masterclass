@@ -1,3 +1,6 @@
 {
-  "postman.account.region": "EU"
+  "postman.account.region": "EU",
+  "protoc": {
+  "proto_path": "proto"
+}
 }

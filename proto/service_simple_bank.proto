@@ -1,10 +1,10 @@
 syntax = "proto3";
 package pb;
 
-import "proto/rpc_create_user.proto";
-import "proto/rpc_get_user.proto";
-import "proto/rpc_list_users.proto";
-import "proto/rpc_login_user.proto";
+import "rpc_create_user.proto";
+import "rpc_get_user.proto";
+import "rpc_list_users.proto";
+import "rpc_login_user.proto";
 
 option go_package = "backend-masterclass/rpc";
 
