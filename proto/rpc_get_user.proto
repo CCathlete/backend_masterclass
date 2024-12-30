@@ -1,0 +1,14 @@
+syntax = "proto3";
+package pb;
+
+import "proto/user.proto";
+
+option go_package = "backend-masterclass/rpc";
+
+message GetUserRequest {
+  string username = 1;
+}
+
+message GetUserResponse {
+  UserResponse body = 1;
+}

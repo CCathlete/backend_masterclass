@@ -1,0 +1,16 @@
+syntax = "proto3";
+package pb;
+
+import "proto/rpc_create_user.proto";
+import "proto/rpc_get_user.proto";
+import "proto/rpc_list_users.proto";
+import "proto/rpc_login_user.proto";
+
+option go_package = "backend-masterclass/rpc";
+
+service SimpleBank {
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse){}
+  rpc GetUser(GetUserRequest) returns (GetUserResponse){}
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse){}
+  rpc LoginUser(LoginUserRequest) returns (LoginUserResponse){}
+}
