@@ -3,6 +3,7 @@ Project simple_bank {
   Note: '''
     The db for backend masterclass.
   '''
+  schema: 'bank'
 }
 
 Table "accounts" {
