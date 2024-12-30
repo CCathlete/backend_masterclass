@@ -32,6 +32,11 @@ server:
 mock:
 	mockgen -destination ./db/mock/${file_name} -package ${pkg_name}  /home/ccat/Repos/backend_masterclass/db/sqlc ${interfaces}
 
+proto:
+	protoc --proto_path=. --go_out=rpc --go_opt=paths=source_relative \
+	--go-grpc_out=rpc --go-grpc_opt=paths=source_relative \
+	./proto/*.proto
+
 # Command aliasing is considered a "phony target" so it's possible to run it repeatedly.
-.PHONY: connect migrateup migratedown sqlc test migraterestart server mock migratedown_1 migrateup_1 #dbfile
+.PHONY: connect migrateup migratedown sqlc test migraterestart server mock migratedown_1 migrateup_1 proto #dbfile
 
