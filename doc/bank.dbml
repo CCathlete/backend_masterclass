@@ -1,3 +1,10 @@
+Project simple_bank {
+  database_type: 'PostgreSQL'
+  Note: '''
+    The db for backend masterclass.
+  '''
+}
+
 Table "accounts" {
   "id" bigint [pk, not null]
   "owner" "character varying" [not null]
