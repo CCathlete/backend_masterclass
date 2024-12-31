@@ -56,7 +56,7 @@ func (server *Server) Start(address string) (err error) {
 	}
 
 	// Log the start of the gRPC server with the address it's listening on.
-	log.Println("Starting gRPC server on", address)
+	log.Println("Starting gRPC server on", listener.Addr().String())
 
 	// Start serving incoming connections on the listener.
 	// This call blocks and serves connections until the server is stopped.
