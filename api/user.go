@@ -145,7 +145,13 @@ func (server *Server) listUsers(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, users)
+	// ----------------Setting up the response.---------------------------
+	var res []userResponse
+	for _, user := range users {
+		res = append(res, newUserResponse(user))
+	}
+
+	ctx.JSON(http.StatusOK, res)
 }
 
 // ------------------------------------------------------------------- //
@@ -178,9 +184,9 @@ func (server *Server) updateUser(ctx *gin.Context) {
 		return
 	}
 
-	output := struct{ Before, After sqlc.User }{
-		Before: userBefore,
-		After:  userAfter,
+	output := struct{ Before, After userResponse }{
+		Before: newUserResponse(userBefore),
+		After:  newUserResponse(userAfter),
 	}
 
 	ctx.JSON(http.StatusOK, output)

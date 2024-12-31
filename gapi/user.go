@@ -5,8 +5,6 @@ import (
 	"backend-masterclass/rpc"
 	u "backend-masterclass/util"
 	"context"
-
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (server *Server) CreateUser(
@@ -36,22 +34,68 @@ func (server *Server) CreateUser(
 
 	// ----------------Setting up the response.---------------------------
 	res = newCreateUserResponse(user)
-
 	return
 }
 
-func newUserResponse(user sqlc.User) *rpc.UserResponse {
-	return &rpc.UserResponse{
-		Username:          user.Username,
-		FullName:          user.FullName,
-		Email:             user.Email,
-		PasswordChangedAt: timestamppb.New(user.PasswordChangedAt),
-		CreatedAt:         timestamppb.New(user.CreatedAt),
+// ------------------------------------------------------------------- //
+
+func (server *Server) GetUser(
+	ctx context.Context,
+	req *rpc.GetUserRequest,
+) (res *rpc.GetUserResponse, err error) {
+
+	// -------------------Executing the query.----------------------------
+	user, err := server.Store.GetUser(ctx, req.GetUsername())
+	if trErr, notNil := server.Store.TranslateError(err); notNil {
+		err = handleError(trErr)
+		return
 	}
+
+	// ----------------Setting up the response.---------------------------
+	res = newGetUserResponse(user)
+	return
 }
 
-func newCreateUserResponse(user sqlc.User) *rpc.CreateUserResponse {
-	return &rpc.CreateUserResponse{
-		Body: newUserResponse(user),
+// ------------------------------------------------------------------- //
+
+func (server *Server) ListUsers(
+	ctx context.Context,
+	req *rpc.ListUsersRequest,
+) (res *rpc.ListUsersResponse, err error) {
+
+	// ----------------Setting up parameters for the query.---------------
+	arg := sqlc.ListUsersParams{
+		Limit:  req.GetPageSize(),
+		Offset: (req.GetPageId() - 1) * req.GetPageSize(),
 	}
+
+	// -------------------Executing the query.----------------------------
+	users, err := server.Store.ListUsers(ctx, arg)
+	if trErr, notNil := server.Store.TranslateError(err); notNil {
+		err = handleError(trErr)
+		return
+	}
+
+	// ----------------Setting up the response.---------------------------
+	res = newListUsersResponse(users)
+	return
+}
+
+// ------------------------------------------------------------------- //
+
+func (server *Server) DeleteUser(
+	ctx context.Context,
+	req *rpc.DeleteUserRequest,
+) (res *rpc.DeleteUserResponse, err error) {
+
+	// -------------------Executing the query.----------------------------
+	err = server.Store.DeleteUser(ctx, req.GetUsername())
+	if trErr, notNil := server.Store.TranslateError(err); notNil {
+		err = handleError(trErr)
+		return
+	}
+
+	// ----------------Setting up the response.---------------------------
+	res = newDeleteUserResponse(req.GetUsername())
+	return
 }
