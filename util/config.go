@@ -15,7 +15,8 @@ type Config struct {
 	Password             string        `mapstructure:"DB_PASS"`
 	DBName               string        `mapstructure:"DB_NAME"`
 	SSLMode              string        `mapstructure:"DB_SSL_MODE"`
-	ServerAddress        string        `mapstructure:"SERVER_ADDRESS"`
+	HTTPServerAddress    string        `mapstructure:"HTTP_SERVER_ADDRESS"`
+	GRPCServerAddress    string        `mapstructure:"GRPC_SERVER_ADDRESS"`
 	TokenKey             string        `mapstructure:"TOKEN_KEY"`
 	AccessTokenDuration  time.Duration `mapstructure:"ACCESS_TOKEN_DURATION"`
 	RefreshTokenDuration time.Duration `mapstructure:"REFRESH_TOKEN_DURATION"`
