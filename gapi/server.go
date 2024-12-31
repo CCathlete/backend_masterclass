@@ -41,10 +41,6 @@ func (server *Server) Start(address string) (err error) {
 	// Makes our server available for gRPC calls.
 	rpc.RegisterSimpleBankServer(grpcServer, server)
 
-	// Register the reflection service on the gRPC server.
-	// This allows clients to use reflection to discover available services, methods,
-	// and request/response message types at runtime, which is useful for debugging
-	// and developing clients without the need for a pre-compiled client stub.
 	reflection.Register(grpcServer)
 
 	// Listen on the specified TCP network address (e.g., "0.0.0.0:9090").
@@ -55,7 +51,6 @@ func (server *Server) Start(address string) (err error) {
 		return
 	}
 
-	// Log the start of the gRPC server with the address it's listening on.
 	log.Println("Starting gRPC server on", listener.Addr().String())
 
 	// Start serving incoming connections on the listener.
