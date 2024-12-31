@@ -19,5 +19,5 @@ func main() {
 	pasetoTokenMaker := u.Must(token.NewPasetoMaker(cfg.TokenKey)).(token.Maker)
 	server := api.NewServer(store, cfg, pasetoTokenMaker)
 
-	u.Must(nil, server.Start(cfg.ServerAddress))
+	u.Must(nil, server.Start(cfg.HTTPServerAddress))
 }
