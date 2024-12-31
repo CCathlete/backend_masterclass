@@ -5,7 +5,11 @@ import (
 	"backend-masterclass/rpc"
 	u "backend-masterclass/util"
 	"context"
+	"log"
 )
+
+// ------------------------------------------------------------------- //
+// ------------------------------------------------------------------- //
 
 func (server *Server) CreateUser(
 	ctx context.Context,
@@ -38,7 +42,77 @@ func (server *Server) CreateUser(
 }
 
 // ------------------------------------------------------------------- //
+// ------------------------------------------------------------------- //
 
+func (server *Server) LoginUser(
+	ctx context.Context,
+	req *rpc.LoginUserRequest,
+) (res *rpc.LoginUserResponse, err error) {
+
+	// -------------------Executing the query.----------------------------
+	user, err := server.Store.GetUser(ctx, req.GetUsername())
+	if trErr, notNil := server.Store.TranslateError(err); notNil {
+		err = handleError(trErr)
+		return
+	}
+
+	// ---------------Verifying the password.-----------------------------
+	err = u.CheckPassword(req.GetPassword(), user.HashedPassword)
+	if err != nil {
+		err = handleError(err)
+		return
+	}
+
+	// -----------Creating a signed authentication token.-----------------
+	accessTokenString, accessPayload, err := server.TokenMaker.CreateToken(
+		user.Username,
+		server.Config.AccessTokenDuration,
+	)
+	if err != nil {
+		err = handleError(err)
+		return
+	}
+
+	// ----------------Creating a refresh token.--------------------------
+	refreshTokenString, refreshPayload, err := server.TokenMaker.CreateToken(
+		user.Username,
+		server.Config.RefreshTokenDuration,
+	)
+	if err != nil {
+		err = handleError(err)
+		return
+	}
+
+	// ----------------Saving the refresh token.--------------------------
+	session, err := server.Store.CreateSession(ctx, sqlc.CreateSessionParams{
+		ID:           refreshPayload.ID,
+		Username:     user.Username,
+		RefreshToken: refreshTokenString,
+		UserAgent:    "", // TODO: add user agent.
+		ClientIp:     "", // TODO: add client ip.
+		IsBlocked:    false,
+		ExpiresAt:    refreshPayload.ExpiresAt,
+	})
+	if trErr, notNil := server.Store.TranslateError(err); notNil {
+		handleError(trErr)
+		return
+	}
+	log.Println("Created session:", session)
+
+	// ----------------Setting up the response.---------------------------
+	res = newLoginUserResponse(
+		session.ID.String(),
+		accessTokenString,
+		refreshTokenString,
+		accessPayload.ExpiresAt,
+		refreshPayload.ExpiresAt,
+		user,
+	)
+	return
+}
+
+// ------------------------------------------------------------------- //
+// ------------------------------------------------------------------- //
 func (server *Server) GetUser(
 	ctx context.Context,
 	req *rpc.GetUserRequest,
@@ -56,6 +130,7 @@ func (server *Server) GetUser(
 	return
 }
 
+// ------------------------------------------------------------------- //
 // ------------------------------------------------------------------- //
 
 func (server *Server) ListUsers(
@@ -82,6 +157,7 @@ func (server *Server) ListUsers(
 }
 
 // ------------------------------------------------------------------- //
+// ------------------------------------------------------------------- //
 
 func (server *Server) DeleteUser(
 	ctx context.Context,
@@ -97,5 +173,37 @@ func (server *Server) DeleteUser(
 
 	// ----------------Setting up the response.---------------------------
 	res = newDeleteUserResponse(req.GetUsername())
+	return
+}
+
+// ------------------------------------------------------------------- //
+// ------------------------------------------------------------------- //
+
+func (server *Server) UpdateUser(
+	ctx context.Context,
+	req *rpc.UpdateUserRequest,
+) (res *rpc.UpdateUserResponse, err error) {
+
+	// ----------------Setting up parameters for the query.---------------
+	arg := sqlc.UpdateUserParams{
+		HashedPassword: req.GetPasswordHash(),
+		Username:       req.GetUsername(),
+	}
+
+	// -------------------Executing the query.----------------------------
+	userBefore, err := server.Store.GetUser(ctx, req.Username)
+	if trErr, notNil := server.Store.TranslateError(err); notNil {
+		handleError(trErr)
+		return
+	}
+
+	userAfter, err := server.Store.UpdateUser(ctx, arg)
+	if trErr, notNil := server.Store.TranslateError(err); notNil {
+		handleError(trErr)
+		return
+	}
+
+	// ----------------Setting up the response.---------------------------
+	res = newUpdateUserResponse(userBefore, userAfter)
 	return
 }

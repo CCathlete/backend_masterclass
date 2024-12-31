@@ -11,5 +11,6 @@ message UpdateUserRequest {
 }
 
 message UpdateUserResponse {
-  UserResponse body = 1;
+  UserResponse before_update = 1;
+  UserResponse after_update = 2;
 }
