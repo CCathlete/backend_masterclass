@@ -38,6 +38,9 @@ proto:
 	--go-grpc_out=rpc --go-grpc_opt=paths=source_relative \
 	proto/*.proto
 
+evans:
+	evans --host=localhost --port=9090 --reflection repl --package pb --service SimpleBank
+
 # Command aliasing is considered a "phony target" so it's possible to run it repeatedly.
-.PHONY: connect migrateup migratedown sqlc test migraterestart server mock migratedown_1 migrateup_1 proto #dbfile
+.PHONY: connect migrateup migratedown sqlc test migraterestart server mock migratedown_1 migrateup_1 proto evans #dbfile
 
