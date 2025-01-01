@@ -20,7 +20,7 @@ service SimpleBank {
   }
   rpc GetUser(GetUserRequest) returns (GetUserResponse){
     option (google.api.http) = {
-      get: "/v1/users/{user_id}"
+      get: "/v1/users/{username}"
     };
   }
   rpc ListUsers(ListUsersRequest) returns (ListUsersResponse){
@@ -30,13 +30,13 @@ service SimpleBank {
   }
   rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse){
     option (google.api.http) = {
-      patch: "/v1/users/{user_id}"
+      patch: "/v1/users/{username}"
       body: "*"
     };
   }
   rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse){
     option (google.api.http) = {
-      delete: "/v1/users/{user_id}"
+      delete: "/v1/users/{username}"
     };
   }
   rpc LoginUser(LoginUserRequest) returns (LoginUserResponse){
