@@ -94,7 +94,7 @@ func (server *Server) LoginUser(
 		ExpiresAt:    refreshPayload.ExpiresAt,
 	})
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
-		handleError(trErr)
+		err = handleError(trErr)
 		return
 	}
 	log.Println("Created session:", session)
