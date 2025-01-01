@@ -49,8 +49,9 @@ func (server *Server) LoginUser(
 	req *rpc.LoginUserRequest,
 ) (res *rpc.LoginUserResponse, err error) {
 
+	username := req.GetUsername()
 	// -------------------Getting user's details.-------------------------
-	user, err := server.Store.GetUser(ctx, req.GetUsername())
+	user, err := server.Store.GetUser(ctx, username)
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
 		err = handleError(trErr)
 		return
@@ -60,6 +61,14 @@ func (server *Server) LoginUser(
 	err = u.CheckPassword(req.GetPassword(), user.HashedPassword)
 	if err != nil {
 		err = handleError(err)
+		return
+	}
+
+	// ---------------Deleting existing session.--------------------------
+	// ---------------Will take affect only if a session exists.----------
+	err = server.Store.DeleteSessionByUsername(ctx, username)
+	if trErr, notNil := server.Store.TranslateError(err); notNil {
+		err = handleError(trErr)
 		return
 	}
 

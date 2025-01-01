@@ -229,6 +229,14 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		return
 	}
 
+	// ---------------Deleting existing session.--------------------------
+	// ---------------Will take affect only if a session exists.----------
+	err = server.Store.DeleteSessionByUsername(ctx, req.Username)
+	if trErr, notNil := server.Store.TranslateError(err); notNil {
+		handleError(ctx, trErr)
+		return
+	}
+
 	// -----------Creating a signed authentication token.-----------------
 	accessTokenString, accessPayload, err := server.TokenMaker.CreateToken(
 		user.Username,
