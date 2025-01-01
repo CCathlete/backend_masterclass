@@ -11,7 +11,8 @@ import (
 )
 
 type Querier interface {
-	BlockSession(ctx context.Context, id uuid.UUID) error
+	BlockSessionByID(ctx context.Context, id uuid.UUID) error
+	BlockSessionByUsername(ctx context.Context, username string) error
 	CountBlockedSessions(ctx context.Context) (int64, error)
 	CountSessions(ctx context.Context, username string) (int64, error)
 	CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error)
@@ -23,7 +24,8 @@ type Querier interface {
 	DeleteBlockedSessions(ctx context.Context) error
 	DeleteEntry(ctx context.Context, id int64) error
 	DeleteExpiredSessions(ctx context.Context) error
-	DeleteSession(ctx context.Context, id uuid.UUID) error
+	DeleteSessionByID(ctx context.Context, id uuid.UUID) error
+	DeleteSessionByUsername(ctx context.Context, username string) error
 	DeleteTransfer(ctx context.Context, id int64) error
 	// If there are no return values we use :exec instead of :one/many
 	DeleteUser(ctx context.Context, username string) error
@@ -31,7 +33,8 @@ type Querier interface {
 	GetAccountEntries(ctx context.Context, accountID int64) ([]Entry, error)
 	GetAccountForUpdate(ctx context.Context, id int64) (Account, error)
 	GetEntry(ctx context.Context, id int64) (Entry, error)
-	GetSession(ctx context.Context, id uuid.UUID) (Session, error)
+	GetSessionByID(ctx context.Context, id uuid.UUID) (Session, error)
+	GetSessionByUsername(ctx context.Context, username string) (Session, error)
 	GetTransfer(ctx context.Context, id int64) (Transfer, error)
 	GetTransfersFrom(ctx context.Context, fromAccountID int64) ([]Transfer, error)
 	GetTransfersTo(ctx context.Context, toAccountID int64) ([]Transfer, error)
@@ -42,14 +45,16 @@ type Querier interface {
 	ListSessions(ctx context.Context, arg ListSessionsParams) ([]Session, error)
 	ListTransfers(ctx context.Context, arg ListTransfersParams) ([]Transfer, error)
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]User, error)
-	UnblockSession(ctx context.Context, id uuid.UUID) error
+	UnblockSessionByID(ctx context.Context, id uuid.UUID) error
+	UnblockSessionByUsername(ctx context.Context, username string) error
 	// If there are no return values we use :exec instead of :one/many
 	UpdateAccount(ctx context.Context, arg UpdateAccountParams) (Account, error)
 	UpdateAccountBalance(ctx context.Context, arg UpdateAccountBalanceParams) (Account, error)
 	// If there are no return values we use :exec instead of :one/many
 	UpdateEntry(ctx context.Context, arg UpdateEntryParams) (Entry, error)
 	UpdateEntryByAccount(ctx context.Context, arg UpdateEntryByAccountParams) (Entry, error)
-	UpdateSession(ctx context.Context, arg UpdateSessionParams) (Session, error)
+	UpdateSessionByID(ctx context.Context, arg UpdateSessionByIDParams) (Session, error)
+	UpdateSessionByUsername(ctx context.Context, arg UpdateSessionByUsernameParams) (Session, error)
 	// If there are no return values we use :exec instead of :one/many
 	UpdateTransfer(ctx context.Context, arg UpdateTransferParams) (Transfer, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)

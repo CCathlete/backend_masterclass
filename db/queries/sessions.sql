@@ -11,15 +11,23 @@ INSERT INTO sessions (
   $1, $2, $3, $4, $5, $6, $7
 ) RETURNING *;
 
--- name: GetSession :one
+-- name: GetSessionByID :one
 SELECT * FROM sessions
 WHERE id = $1 LIMIT 1;
 
--- name: DeleteSession :exec
+-- name: GetSessionByUsername :one
+SELECT * FROM sessions
+WHERE username = $1 LIMIT 1;
+
+-- name: DeleteSessionByID :exec
 DELETE FROM sessions
 WHERE id = $1;
 
--- name: UpdateSession :one
+-- name: DeleteSessionByUsername :exec
+DELETE FROM sessions
+WHERE username = $1;
+
+-- name: UpdateSessionByID :one
 UPDATE sessions
 SET
   refresh_token = $2,
@@ -29,6 +37,18 @@ SET
   expires_at = $6
 WHERE
   id = $1
+RETURNING *;
+
+-- name: UpdateSessionByUsername :one
+UPDATE sessions
+SET
+  refresh_token = $2,
+  user_agent = $3,
+  client_ip = $4,
+  is_blocked = $5,
+  expires_at = $6
+WHERE
+  username = $1
 RETURNING *;
 
 -- name: ListSessions :many
@@ -53,15 +73,25 @@ OFFSET $2;
 SELECT COUNT(*) FROM sessions
 WHERE is_blocked = true;
 
--- name: BlockSession :exec
+-- name: BlockSessionByID :exec
 UPDATE sessions
 SET is_blocked = true
 WHERE id = $1;
 
--- name: UnblockSession :exec
+-- name: BlockSessionByUsername :exec
+UPDATE sessions
+SET is_blocked = true
+WHERE username = $1;
+
+-- name: UnblockSessionByID :exec
 UPDATE sessions
 SET is_blocked = false
 WHERE id = $1;
+
+-- name: UnblockSessionByUsername :exec
+UPDATE sessions
+SET is_blocked = false
+WHERE username = $1;
 
 -- name: DeleteExpiredSessions :exec
 DELETE FROM sessions

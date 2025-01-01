@@ -49,7 +49,7 @@ func (server *Server) LoginUser(
 	req *rpc.LoginUserRequest,
 ) (res *rpc.LoginUserResponse, err error) {
 
-	// -------------------Executing the query.----------------------------
+	// -------------------Getting user's details.-------------------------
 	user, err := server.Store.GetUser(ctx, req.GetUsername())
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
 		err = handleError(trErr)
