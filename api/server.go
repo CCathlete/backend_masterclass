@@ -52,6 +52,7 @@ func (server *Server) Start(address string) (err error) {
 func routeAccount(s *Server) {
 	// POST requests:
 	s.AuthRouter.POST("/accounts", s.createAccount)
+	// TODO: Change to PATCH.
 	s.AuthRouter.POST("/accounts/updbalance", s.updateAccountBalance)
 	// s.AuthRouter.POST("/accounts/setbalance", s.updateAccount)
 
@@ -59,18 +60,21 @@ func routeAccount(s *Server) {
 	s.AuthRouter.GET("/accounts", s.listAccounts)
 	s.AuthRouter.GET("/accounts/:id", s.getAccount)
 	s.AuthRouter.GET("/accounts/forupdate/:id", s.getAccountForUpdate)
+	// TODO: Change to DELETE.
 	s.AuthRouter.GET("/accounts/delete/:id", s.deleteAccount)
 }
 
 func routeTransfer(s *Server) {
 	// POST requests:
 	s.AuthRouter.POST("/transfers", s.createTransfer)
+	// TODO: Change to PATCH.
 	s.AuthRouter.POST("/transfers/updamount", s.updateTransfer)
 	s.AuthRouter.POST("/transfers/fromaccount", s.getTransfersFromAccount)
 
 	// GET Requests:
 	s.AuthRouter.GET("/transfers", s.listTransfers)
 	s.AuthRouter.GET("/transfers/:id", s.getTransfer)
+	// TODO: Change to DELETE.
 	s.AuthRouter.GET("/transfers/delete/:id", s.deleteTransfer)
 }
 
@@ -78,9 +82,11 @@ func routeUser(s *Server) {
 	// POST requests:
 	s.Router.POST("/users", s.createUser)
 	s.Router.POST("/users/login", s.loginUser)
+	// TODO: Change to PATCH.
 	s.Router.POST("/users/updusername", s.updateUser)
 	// GET Requests:
 	s.Router.GET("/users", s.listUsers)
 	s.Router.GET("/users/:username", s.getUser)
+	// TODO: Change to DELETE.
 	s.Router.GET("/users/delete/:username", s.deleteUser)
 }
