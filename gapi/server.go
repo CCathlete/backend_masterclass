@@ -5,9 +5,12 @@ import (
 	"backend-masterclass/rpc"
 	"backend-masterclass/token"
 	u "backend-masterclass/util"
+	"context"
 	"log"
 	"net"
+	"net/http"
 
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -35,7 +38,7 @@ func NewServer(store sqlc.Store, config u.Config, maker token.Maker,
 }
 
 func (server *Server) Start(address string) (err error) {
-	// Create a new gRPC server instance.
+	// Creating a new gRPC server instance.
 	grpcServer := grpc.NewServer()
 
 	// Makes our server available for gRPC calls.
@@ -43,11 +46,10 @@ func (server *Server) Start(address string) (err error) {
 
 	reflection.Register(grpcServer)
 
-	// Listen on the specified TCP network address (e.g., "0.0.0.0:9090").
+	// Listening on the specified TCP network address (e.g., "0.0.0.0:9090").
 	// This creates a network listener which the gRPC server will accept connections from.
 	listener, err := net.Listen("tcp", address)
 	if err != nil {
-		// If there's an error in creating the listener, return the error.
 		return
 	}
 
@@ -56,5 +58,34 @@ func (server *Server) Start(address string) (err error) {
 	// Start serving incoming connections on the listener.
 	// This call blocks and serves connections until the server is stopped.
 	err = grpcServer.Serve(listener)
+	return
+}
+
+func (server *Server) StartGatewayServer(address string,
+) (err error) {
+
+	grpcMux := runtime.NewServeMux()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Registers the gererated gateway handlers to grpcMux
+	err = rpc.RegisterSimpleBankHandlerServer(ctx, grpcMux, server)
+	if err != nil {
+		return
+	}
+
+	HTTPMux := http.NewServeMux()
+	// Wrapping our grpcMux with an HTTP mux so all HTTP routes are handled by the grpc-gateway and converted to gRPC calls.
+	HTTPMux.Handle("/", grpcMux)
+
+	listener, err := net.Listen("tcp", address)
+	if err != nil {
+		return
+	}
+
+	log.Println(
+		"Starting HTTP gateway server on", listener.Addr().String())
+
+	err = http.Serve(listener, HTTPMux)
 	return
 }
