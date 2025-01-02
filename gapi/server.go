@@ -75,19 +75,24 @@ func (server *Server) StartGatewayServer(address string,
 			},
 		})
 
+	// Gets HTTP requests and forwards them to the gRPC server.
 	grpcMux := runtime.NewServeMux(jsonOption)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// Registers the gererated gateway handlers to grpcMux
+	// Registering our gRPC server to get calls from grpcMux.
 	err = rpc.RegisterSimpleBankHandlerServer(ctx, grpcMux, server)
 	if err != nil {
 		return
 	}
 
-	HTTPMux := http.NewServeMux()
 	// Wrapping our grpcMux with an HTTP mux so all HTTP routes are handled by the grpc-gateway and converted to gRPC calls.
+	HTTPMux := http.NewServeMux()
 	HTTPMux.Handle("/", grpcMux)
+
+	// Creating a handler that serves static files.
+	fileServer := http.FileServer(http.Dir("./rpc/openapi"))
+	HTTPMux.Handle("/swagger/", http.StripPrefix("/swagger/", fileServer))
 
 	listener, err := net.Listen("tcp", address)
 	if err != nil {
