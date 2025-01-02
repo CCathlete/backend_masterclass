@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "service_simple_bank.proto",
+    "title": "rpc_create_user.proto",
     "version": "version not set"
   },
   "tags": [

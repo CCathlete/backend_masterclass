@@ -18,7 +18,7 @@ migratedown_1: # Down one migration back.
 	migrate -path db/migrations -database "postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=${DB_SSL_MODE}" -verbose down 1
 
 sqlc:
-	sqlc generate
+	sqlc generate -f db/sqlc.yaml
 
 test:
 	go test -v -cover ./...
@@ -38,6 +38,7 @@ proto:
 	--go-grpc_out=rpc --go-grpc_opt=paths=source_relative \
 	--grpc-gateway_out=rpc --grpc-gateway_opt=paths=source_relative \
 	--openapiv2_out=rpc/openapi --openapiv2_opt=logtostderr=true \
+	--openapiv2_opt=allow_merge=true,merge_file_name=simple_bank \
 	proto/*.proto
 
 evans:
