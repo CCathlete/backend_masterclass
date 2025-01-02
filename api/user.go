@@ -271,7 +271,7 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		handleError(ctx, trErr)
 		return
 	}
-	log.Println("Created session:", session)
+	log.Printf("Created session: %+v\n", session)
 
 	// ----------Sending the tokens in the response.----------------------
 	rsp := loginUserResponse{

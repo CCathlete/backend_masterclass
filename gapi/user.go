@@ -93,12 +93,13 @@ func (server *Server) LoginUser(
 	}
 
 	// ----------------Saving the refresh token.--------------------------
+	metadata := server.extractMetadata(ctx)
 	session, err := server.Store.CreateSession(ctx, sqlc.CreateSessionParams{
 		ID:           refreshPayload.ID,
 		Username:     user.Username,
 		RefreshToken: refreshTokenString,
-		UserAgent:    "", // TODO: add user agent.
-		ClientIp:     "", // TODO: add client ip.
+		UserAgent:    metadata.UserAgent,
+		ClientIp:     metadata.ClientIP,
 		IsBlocked:    false,
 		ExpiresAt:    refreshPayload.ExpiresAt,
 	})
@@ -106,7 +107,7 @@ func (server *Server) LoginUser(
 		err = handleError(trErr)
 		return
 	}
-	log.Println("Created session:", session)
+	log.Printf("Created session: %+v\n", session)
 
 	// ----------------Setting up the response.---------------------------
 	res = newLoginUserResponse(
