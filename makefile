@@ -34,7 +34,11 @@ mock:
 
 proto:
 	rm -f ./rpc/*.go ./rpc/openapi/*.json
-	protoc --proto_path=proto --go_out=rpc --go_opt=paths=source_relative \
+	protoc \
+	--proto_path=proto \
+	--proto_path=/home/ccat/go/pkg/mod/\
+	github.com/grpc-ecosystem/grpc-gateway/v2@v2.25.1 \
+	--go_out=rpc --go_opt=paths=source_relative \
 	--go-grpc_out=rpc --go-grpc_opt=paths=source_relative \
 	--grpc-gateway_out=rpc --grpc-gateway_opt=paths=source_relative \
 	--openapiv2_out=rpc/openapi --openapiv2_opt=logtostderr=true \
