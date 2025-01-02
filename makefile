@@ -44,6 +44,7 @@ proto:
 	--openapiv2_out=rpc/openapi --openapiv2_opt=logtostderr=true \
 	--openapiv2_opt=allow_merge=true,merge_file_name=simple_bank \
 	proto/*.proto
+	statik -src=rpc/openapi -dest=doc
 
 evans:
 	evans --host=localhost --port=9090 --reflection repl --package pb --service SimpleBank
