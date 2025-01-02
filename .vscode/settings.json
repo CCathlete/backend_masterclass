@@ -1,6 +1,9 @@
 {
   "postman.account.region": "EU",
   "protoc": {
-  "proto_path": "proto"
+  "options": [
+    "--proto_path=proto",
+    "--proto_path=/home/ccat/go/pkg/mod/github.com/grpc-ecosystem/grpc-gateway/v2@v2.25.1"
+  ]
 }
 }
