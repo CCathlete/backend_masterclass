@@ -35,12 +35,23 @@ func validateCreateUserRequest(req *rpc.CreateUserRequest,
 	return
 }
 
-// TODO: Implement the rest of the validation functions.
 func validateLoginUserRequest(req *rpc.LoginUserRequest,
 ) (violations []*errdetails.BadRequest_FieldViolation) {
-	return nil
+
+	err := NewPropagatedError()
+	if validation.ValidateUsername(req.GetUsername(), err) {
+		violations = append(violations, fieldViolation("username", err))
+	}
+
+	err = NewPropagatedError()
+	if validation.ValidatePassword(req.GetPassword(), err) {
+		violations = append(violations, fieldViolation("password", err))
+	}
+
+	return
 }
 
+// TODO: Implement the rest of the validation functions.
 func validateUpdateUserRequest(req *rpc.UpdateUserRequest,
 ) (violations []*errdetails.BadRequest_FieldViolation) {
 	return nil
