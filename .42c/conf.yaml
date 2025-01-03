@@ -1,3 +1,0 @@
-apis:
-  rpc/openapi/simple_bank.swagger.json:
-    alias: rpc_create_user.proto
