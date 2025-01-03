@@ -5,4 +5,5 @@ type EntityRepo interface {
 	accountRepo
 	entryRepo
 	transferRepo
+	sessionRepo
 }
