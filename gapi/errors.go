@@ -2,10 +2,20 @@ package gapi
 
 import (
 	"backend-masterclass/db/sqlc"
+	u "backend-masterclass/util"
 	"errors"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+)
+
+type PropagatedError = u.PropagatedError
+
+// Function aliases.
+var (
+	WrapError          = u.WrapError
+	NewPropagatedError = u.NewPropagatedError
+	GetMessage         = u.GetMessage
 )
 
 func handleError(err error) error {
