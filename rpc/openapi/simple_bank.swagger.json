@@ -2,7 +2,7 @@
   "swagger": "2.0",
   "info": {
     "title": "Simple Bank API",
-    "version": "1.0",
+    "version": "1.1",
     "contact": {
       "name": "Ken Cat",
       "url": "https://github.com/CCathlete/backend_masterclass",
@@ -23,6 +23,8 @@
   "paths": {
     "/v1/users": {
       "get": {
+        "summary": "List existing users",
+        "description": "Use this endpoint to list all users.",
         "operationId": "SimpleBank_ListUsers",
         "responses": {
           "200": {
@@ -59,6 +61,8 @@
         ]
       },
       "post": {
+        "summary": "Create a new user",
+        "description": "Use this endpoint to create a new user.",
         "operationId": "SimpleBank_CreateUser",
         "responses": {
           "200": {
@@ -123,6 +127,8 @@
     },
     "/v1/users/{username}": {
       "get": {
+        "summary": "Get user info",
+        "description": "Use this endpoint to get user's details.",
         "operationId": "SimpleBank_GetUser",
         "responses": {
           "200": {
@@ -179,6 +185,8 @@
         ]
       },
       "patch": {
+        "summary": "Update an existing user",
+        "description": "Use this endpoint to update user's details.",
         "operationId": "SimpleBank_UpdateUser",
         "responses": {
           "200": {

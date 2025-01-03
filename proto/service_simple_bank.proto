@@ -15,7 +15,7 @@ option go_package = "backend-masterclass/rpc";
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
   info: {
     title: "Simple Bank API"
-    version: "1.0"
+    version: "1.1"
     contact: {
       name: "Ken Cat"
       url: "https://github.com/CCathlete/backend_masterclass"
@@ -30,21 +30,41 @@ service SimpleBank {
       post: "/v1/users"
       body: "*" // All parameters of the request are passed to the body.
     };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      description: "Use this endpoint to create a new user."
+      summary: "Create a new user"
+    };
   }
   rpc GetUser(GetUserRequest) returns (GetUserResponse){
     option (google.api.http) = {
       get: "/v1/users/{username}"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      description: "Use this endpoint to get user's details."
+      summary: "Get user info"
     };
   }
   rpc ListUsers(ListUsersRequest) returns (ListUsersResponse){
     option (google.api.http) = {
       get: "/v1/users"
     };
+    
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      description: "Use this endpoint to list all users."
+      summary: "List existing users"
+    };
   }
   rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse){
     option (google.api.http) = {
       patch: "/v1/users/{username}"
       body: "*"
+    };
+    
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      description: "Use this endpoint to update user's details."
+      summary: "Update an existing user"
     };
   }
   rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse){

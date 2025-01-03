@@ -11,9 +11,12 @@ import (
 	"net/http"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/rakyll/statik/fs"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/encoding/protojson"
+
+	_ "backend-masterclass/doc/statik" // Binary static files.
 )
 
 // Serves all gRPC requests for our banking service.
@@ -91,8 +94,16 @@ func (server *Server) StartGatewayServer(address string,
 	HTTPMux.Handle("/", grpcMux)
 
 	// Creating a handler that serves static files.
-	fileServer := http.FileServer(http.Dir("./rpc/openapi"))
-	HTTPMux.Handle("/swagger/", http.StripPrefix("/swagger/", fileServer))
+	staticFs, err := fs.New()
+	if err != nil {
+		return
+	}
+
+	// Strips the /swagger/ from paths it gets and uses the rest as a filesystem path.
+	staticHandler :=
+		http.StripPrefix("/swagger/", http.FileServer(staticFs))
+
+	HTTPMux.Handle("/swagger/", staticHandler)
 
 	listener, err := net.Listen("tcp", address)
 	if err != nil {
