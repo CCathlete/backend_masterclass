@@ -1,0 +1,10 @@
+version: "2"
+databases:
+- name: db
+  driver: sqlserver
+  connection_string: "sqlserver://sa:Password@localhost:1433?database=sqlc"
+  schema: dbo
+  output: db
+  queries: ./sql
+  templates: ./templates
+  views: true
