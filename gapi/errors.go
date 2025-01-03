@@ -5,6 +5,7 @@ import (
 	u "backend-masterclass/util"
 	"errors"
 
+	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -32,4 +33,13 @@ func handleError(err error) error {
 
 	// Any other error.
 	return status.Error(codes.Internal, err.Error())
+}
+
+func fieldViolation(field string, err PropagatedError,
+) *errdetails.BadRequest_FieldViolation {
+
+	return &errdetails.BadRequest_FieldViolation{
+		Field:       field,
+		Description: GetMessage(err),
+	}
 }

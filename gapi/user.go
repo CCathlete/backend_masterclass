@@ -16,6 +16,13 @@ func (server *Server) CreateUser(
 	req *rpc.CreateUserRequest,
 ) (res *rpc.CreateUserResponse, err error) {
 
+	// -------------------Validating the request.-------------------------
+	violations := validateCreateUserRequest(req)
+	if violationsFound(violations) {
+		err = badRequestError(violations)
+		return
+	}
+
 	// ----------------Setting up parameters for the query.---------------
 	arg := sqlc.CreateUserParams{
 		Username: req.GetUsername(),
@@ -50,6 +57,14 @@ func (server *Server) LoginUser(
 ) (res *rpc.LoginUserResponse, err error) {
 
 	username := req.GetUsername()
+
+	// -------------------Validating the request.-------------------------
+	violations := validateLoginUserRequest(req)
+	if violationsFound(violations) {
+		err = badRequestError(violations)
+		return
+	}
+
 	// -------------------Getting user's details.-------------------------
 	user, err := server.Store.GetUser(ctx, username)
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
@@ -128,6 +143,13 @@ func (server *Server) GetUser(
 	req *rpc.GetUserRequest,
 ) (res *rpc.GetUserResponse, err error) {
 
+	// -------------------Validating the request.-------------------------
+	violations := validateGetUserRequest(req)
+	if violationsFound(violations) {
+		err = badRequestError(violations)
+		return
+	}
+
 	// -------------------Executing the query.----------------------------
 	user, err := server.Store.GetUser(ctx, req.GetUsername())
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
@@ -147,6 +169,13 @@ func (server *Server) ListUsers(
 	ctx context.Context,
 	req *rpc.ListUsersRequest,
 ) (res *rpc.ListUsersResponse, err error) {
+
+	// -------------------Validating the request.-------------------------
+	violations := validateListUsersRequest(req)
+	if violationsFound(violations) {
+		err = badRequestError(violations)
+		return
+	}
 
 	// ----------------Setting up parameters for the query.---------------
 	arg := sqlc.ListUsersParams{
@@ -174,6 +203,13 @@ func (server *Server) DeleteUser(
 	req *rpc.DeleteUserRequest,
 ) (res *rpc.DeleteUserResponse, err error) {
 
+	// -------------------Validating the request.-------------------------
+	violations := validateDeleteUserRequest(req)
+	if violationsFound(violations) {
+		err = badRequestError(violations)
+		return
+	}
+
 	// -------------------Executing the query.----------------------------
 	err = server.Store.DeleteUser(ctx, req.GetUsername())
 	if trErr, notNil := server.Store.TranslateError(err); notNil {
@@ -193,6 +229,13 @@ func (server *Server) UpdateUser(
 	ctx context.Context,
 	req *rpc.UpdateUserRequest,
 ) (res *rpc.UpdateUserResponse, err error) {
+
+	// -------------------Validating the request.-------------------------
+	violations := validateUpdateUserRequest(req)
+	if violationsFound(violations) {
+		err = badRequestError(violations)
+		return
+	}
 
 	// ----------------Setting up parameters for the query.---------------
 	arg := sqlc.UpdateUserParams{
