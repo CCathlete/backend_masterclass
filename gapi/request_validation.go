@@ -3,6 +3,7 @@ package gapi
 import (
 	"backend-masterclass/rpc"
 	"backend-masterclass/validation"
+	"fmt"
 
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
@@ -51,25 +52,55 @@ func validateLoginUserRequest(req *rpc.LoginUserRequest,
 	return
 }
 
-// TODO: Implement the rest of the validation functions.
 func validateUpdateUserRequest(req *rpc.UpdateUserRequest,
 ) (violations []*errdetails.BadRequest_FieldViolation) {
-	return nil
+
+	err := NewPropagatedError()
+	if validation.ValidateUsername(req.GetUsername(), err) {
+		violations = append(violations, fieldViolation("username", err))
+	}
+
+	return
 }
 
 func validateDeleteUserRequest(req *rpc.DeleteUserRequest,
 ) (violations []*errdetails.BadRequest_FieldViolation) {
-	return nil
+
+	err := NewPropagatedError()
+	if validation.ValidateUsername(req.GetUsername(), err) {
+		violations = append(violations, fieldViolation("username", err))
+	}
+
+	return
 }
 
 func validateGetUserRequest(req *rpc.GetUserRequest,
 ) (violations []*errdetails.BadRequest_FieldViolation) {
-	return nil
+
+	err := NewPropagatedError()
+	if validation.ValidateUsername(req.GetUsername(), err) {
+		violations = append(violations, fieldViolation("username", err))
+	}
+
+	return
 }
 
 func validateListUsersRequest(req *rpc.ListUsersRequest,
 ) (violations []*errdetails.BadRequest_FieldViolation) {
-	return nil
+
+	pageID := req.GetPageId()
+	if pageID < 1 || pageID > 10 {
+		err := fmt.Errorf("page_id must be between 1 and 10")
+		violations = append(violations, fieldViolation("username", &err))
+	}
+
+	pageSize := req.GetPageSize()
+	if pageSize < 5 || pageSize > 50 {
+		err := fmt.Errorf("page_size must be between 5 and 50")
+		violations = append(violations, fieldViolation("username", &err))
+	}
+
+	return
 }
 
 func violationsFound(violations []*errdetails.BadRequest_FieldViolation) bool {
