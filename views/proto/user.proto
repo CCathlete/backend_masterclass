@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package proto;
+
+option go_package = "backend-masterclass/controllers/protoc";
+
+message UserResponse {
+  string username = 1;
+  string email = 2;
+}
+
+message CreateUserRequest {
+  string username = 1;
+  string email = 2;
+  string password = 3;
+}
+
+message CreateUserResponse {
+  UserResponse body = 1;
+}
+
+message LoginUserRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message LoginUserResponse {
+  UserResponse body = 1;
+}
+
+message GetUserRequest {
+  string username = 1;
+}
+
+message GetUserResponse {
+  UserResponse body = 1;
+}
