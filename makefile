@@ -20,3 +20,5 @@ proto:
 
 evans:
 	evans --host=localhost --port=9090 --reflection repl --package pb --service SimpleBank
+
+.PHONY: server mock proto evans
