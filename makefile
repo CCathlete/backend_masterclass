@@ -7,15 +7,16 @@ mock:
 proto:
 	rm -f ./rpc/*.go ./views/openapi/*.json
 	protoc \
-	--proto_path=proto \
+	--proto_path=views/proto \
 	--proto_path=/home/ccat/go/pkg/mod/\
 	github.com/grpc-ecosystem/grpc-gateway/v2@v2.25.1 \
 	--go_out=controllers/protoc --go_opt=paths=source_relative \
 	--go-grpc_out=controllers/protoc --go-grpc_opt=paths=source_relative \
-	--grpc-gateway_out=rpc --grpc-gateway_opt=paths=source_relative \
+	--grpc-gateway_out=controllers/protoc \
+	--grpc-gateway_opt=paths=source_relative \
 	--openapiv2_out=views/openapi --openapiv2_opt=logtostderr=true \
 	--openapiv2_opt=allow_merge=true,merge_file_name=simple_bank \
-	proto/*.proto
+	views/proto/*.proto
 	# statik -src=views/openapi -dest=views
 
 evans:
