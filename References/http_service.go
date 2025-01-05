@@ -1,4 +1,6 @@
-package http
+//go:build refs
+
+package ref
 
 import (
 	"backend-masterclass/controllers/grpc"
@@ -17,7 +19,7 @@ type Gateway struct {
 	BankService *grpc.Service
 }
 
-func NewService(r repo) (s *Gateway) {
+func NewGWService(r repo) (s *Gateway) {
 	s = &Gateway{
 		BankService: grpc.NewService(r),
 	}

@@ -1,4 +1,6 @@
-package grpc
+//go:build refs
+
+package ref
 
 import (
 	"backend-masterclass/controllers/protoc"

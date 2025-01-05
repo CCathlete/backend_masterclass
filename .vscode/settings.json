@@ -3,5 +3,9 @@
     "options": [
       "--proto_path=views/proto",
     ]
-  }
+  },
+  "editor.fontSize": 20,
+  "makefile.configureOnOpen": false,
+  "editor.wordWrap": "wordWrapColumn",
+  "editor.wordWrapColumn": 63
 }

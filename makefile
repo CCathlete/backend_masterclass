@@ -8,7 +8,7 @@ proto:
 	rm -f ./rpc/*.go ./views/openapi/*.json
 	protoc \
 	--proto_path=views/proto \
-	--proto_path=/home/ccat/go/pkg/mod/\
+	--proto_path=/go/pkg/mod/\
 	github.com/grpc-ecosystem/grpc-gateway/v2@v2.25.1 \
 	--go_out=controllers/protoc --go_opt=paths=source_relative \
 	--go-grpc_out=controllers/protoc --go-grpc_opt=paths=source_relative \
