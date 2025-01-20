@@ -10,15 +10,13 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
-type Repo = entities.Repo
-
 type Service struct {
 	protoc.UnimplementedBankServiceServer
 	Repo entities.Repo
 }
 
-func NewService(repo Repo) (s *Service) {
-	s = &Service{
+func NewService(repo entities.Repo) (service *Service) {
+	service = &Service{
 		Repo: repo,
 	}
 
@@ -27,23 +25,18 @@ func NewService(repo Repo) (s *Service) {
 
 func (service *Service) Start(address string) (err error) {
 
-	// Creating a gRPC server and registering our bank service.
 	server := grpc.NewServer()
-	protoc.RegisterBankServiceServer(server, service)
 
-	// Registering a reflection service on our server.
+	protoc.RegisterBankServiceServer(server, service)
 	reflection.Register(server)
 
-	// Listening on the given address (url:port).
 	listener, err := net.Listen("tcp", address)
 	if err != nil {
 		return
 	}
-	log.Printf("Starting server on %s\n", listener.Addr().
-		String())
 
-	// Starting the server.
+	log.Printf("gRPC server started at %s", listener.Addr().String())
+
 	err = server.Serve(listener)
-
 	return
 }
